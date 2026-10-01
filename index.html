@@ -1,16 +1,19 @@
-<!DOCTYPE html>
+<!doctype html>
 
 <html lang="pt-BR">
-<head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<meta content="Gestor de Gastos e Finanças Pessoais com Supabase" name="description"/>
-<title>Finanças — Gestor de Gastos</title>
-<!-- Tailwind CSS via CDN -->
-<script src="https://cdn.tailwindcss.com"></script>
-<!-- Supabase JS v2 via CDN -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <meta
+      content="Gestor de Gastos e Finanças Pessoais com Supabase"
+      name="description"
+    />
+    <title>Finanças — Gestor de Gastos</title>
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Supabase JS v2 via CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
       tailwind.config = {
         theme: {
           extend: {
@@ -21,7 +24,7 @@
         },
       };
     </script>
-<style>
+    <style>
       html {
         scroll-behavior: smooth;
       }
@@ -69,259 +72,458 @@
         font-variant-numeric: tabular-nums;
       }
     </style>
-</head>
-<body class="min-h-screen text-slate-900">
-<div class="fixed right-4 top-4 z-[100] flex w-[min(420px,calc(100vw-2rem))] flex-col gap-3" id="toastRoot"></div>
-<header class="border-b border-slate-200 bg-white">
-<div class="mx-auto max-w-7xl px-4 py-5 sm:px-6 lg:px-8">
-<div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-<div>
-<p class="text-sm font-semibold uppercase tracking-wider text-indigo-600">
-              Finanças pessoais
-            </p>
-<h1 class="mt-1 text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl">
+  </head>
+  <body class="min-h-screen text-slate-900">
+    <div
+      class="fixed right-4 top-4 z-[100] flex w-[min(420px,calc(100vw-2rem))] flex-col gap-3"
+      id="toastRoot"
+    ></div>
+    <header class="border-b border-slate-200 bg-white">
+      <div class="mx-auto max-w-7xl px-4 py-5 sm:px-6 lg:px-8">
+        <div
+          class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+        >
+          <div>
+            <h1
+              class="mt-1 text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl"
+            >
               Gestor de Gastos
             </h1>
-<p class="mt-1 text-sm text-slate-500">
-              Seus registros são lidos e gravados diretamente no Supabase.
-            </p>
-</div>
-</div>
-</div>
-</header>
-<main class="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
-<!-- Summary compacto -->
-
-<!-- Filters -->
-
-<div class="grid gap-4 lg:grid-cols-12 lg:items-start"><div class="lg:col-span-10"><section class="mb-4 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4">
-<div class="flex flex-col gap-3">
-<div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-<h2 class="text-base font-bold text-slate-950">Todos os gastos</h2>
-<button class="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-slate-200" id="newExpenseBtn" type="button"><span class="text-lg leading-none">+</span> Novo gasto</button>
-</div>
-<div class="flex flex-wrap gap-2" id="periodFilters">
-<button class="period-btn rounded-lg bg-slate-950 px-3.5 py-2 text-xs font-semibold text-white" data-period="today">
-              Hoje
-            </button>
-<button class="period-btn rounded-lg px-3.5 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100" data-period="week">
-              Esta semana
-            </button>
-<button class="period-btn rounded-lg px-3.5 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100" data-period="month">
-              Este mês
-            </button>
-<button class="period-btn rounded-lg px-3.5 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100" data-period="year">
-              Este ano
-            </button>
-<button class="period-btn rounded-lg px-3.5 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100" data-period="all">
-              Todos
-            </button>
-<button class="period-btn rounded-lg px-3.5 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100" data-period="custom">
-              Personalizado
-            </button>
-</div>
-<div class="hidden grid gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4 sm:grid-cols-2" id="customRange">
-<label class="text-sm font-medium text-slate-700">
-              Data inicial
-              <input class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100" id="customStart" type="date"/>
-</label>
-<label class="text-sm font-medium text-slate-700">
-              Data final
-              <input class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100" id="customEnd" type="date"/>
-</label>
-</div>
-</div>
-<div class="border-b border-slate-200 px-4 py-3 sm:px-5">
-<div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-<div>
-<p class="text-sm text-slate-500" id="listDescription">
-                Exibindo os gastos de hoje.
-              </p>
-</div>
-<div class="relative">
-<input class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm outline-none placeholder:text-slate-400 focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-100 sm:w-64" id="searchInput" placeholder="Buscar gasto..." type="search"/>
-</div>
-</div>
-</div>
-<div class="flex min-h-64 items-center justify-center p-8" id="loadingState">
-<div class="text-center">
-<div class="spinner-dark mx-auto"></div>
-<p class="mt-3 text-sm font-medium text-slate-600">
-              Carregando dados do Supabase...
-            </p>
-</div>
-</div>
-<div class="hidden p-6" id="errorState">
-<div class="rounded-xl border border-red-200 bg-red-50 p-5">
-<h3 class="font-semibold text-red-900">
-              Não foi possível carregar os gastos
-            </h3>
-<p class="mt-1 whitespace-pre-wrap text-sm text-red-700" id="errorMessage"></p>
-<button class="mt-4 rounded-lg bg-red-700 px-4 py-2 text-sm font-semibold text-white hover:bg-red-800" id="retryBtn" type="button">
-              Tentar novamente
-            </button>
-</div>
-</div>
-<div class="hidden p-10 text-center" id="emptyState">
-<div class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-2xl">
-            R$
           </div>
-<h3 class="mt-4 font-semibold text-slate-900">
-            Nenhum gasto encontrado
-          </h3>
-<p class="mx-auto mt-1 max-w-md text-sm text-slate-500">
-            Não há registros correspondentes ao período e à busca selecionados.
-          </p>
-<button class="mt-5 rounded-xl bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-800" id="emptyNewBtn" type="button">
-            Adicionar gasto
-          </button>
-</div>
-<div class="hidden overflow-x-auto" id="tableWrap">
-<table class="w-full min-w-[850px] text-left">
-<thead class="border-b border-slate-200 bg-slate-50">
-<tr class="text-xs font-semibold uppercase tracking-wider text-slate-500">
-<th class="px-6 py-3">Gasto</th>
-<th class="px-6 py-3">Descrição</th>
-<th class="px-6 py-3">Data</th>
-<th class="px-6 py-3">Hora</th>
-<th class="px-6 py-3 text-right">Valor</th>
-<th class="px-6 py-3 text-right">Ações</th>
-</tr>
-</thead>
-<tbody class="divide-y divide-slate-100" id="expenseBody"></tbody>
-</table>
-</div>
+        </div>
+      </div>
+    </header>
+    <main class="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
+      <!-- Summary compacto -->
 
-</section></div><aside class="space-y-4 lg:col-span-2 lg:sticky lg:top-4"><section class="rounded-2xl border border-slate-200 bg-white shadow-sm">
-<div class="grid grid-cols-1 divide-y divide-slate-200">
-<div class="px-5 py-4">
-<p class="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
-              Total gasto
-            </p>
-<div class="mt-1 flex items-baseline gap-2">
-<p class="money text-xl font-bold tracking-tight text-slate-950" id="totalValue">
-                R$ 0,00
+      <!-- Filters -->
+
+      <div class="grid gap-4 lg:grid-cols-12 lg:items-start">
+        <div class="lg:col-span-10">
+          <section
+            class="mb-4 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4"
+          >
+            <div class="flex flex-col gap-3">
+              <div
+                class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+              >
+                <h2 class="text-base font-bold text-slate-950">
+                  Todos os gastos
+                </h2>
+                <button
+                  class="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-slate-200"
+                  id="newExpenseBtn"
+                  type="button"
+                >
+                  <span class="text-lg leading-none">+</span> Novo gasto
+                </button>
+              </div>
+              <div class="flex flex-wrap gap-2" id="periodFilters">
+                <button
+                  class="period-btn rounded-lg bg-slate-950 px-3.5 py-2 text-xs font-semibold text-white"
+                  data-period="today"
+                >
+                  Hoje
+                </button>
+                <button
+                  class="period-btn rounded-lg px-3.5 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100"
+                  data-period="week"
+                >
+                  Esta semana
+                </button>
+                <button
+                  class="period-btn rounded-lg px-3.5 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100"
+                  data-period="month"
+                >
+                  Este mês
+                </button>
+                <button
+                  class="period-btn rounded-lg px-3.5 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100"
+                  data-period="year"
+                >
+                  Este ano
+                </button>
+                <button
+                  class="period-btn rounded-lg px-3.5 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100"
+                  data-period="all"
+                >
+                  Todos
+                </button>
+                <button
+                  class="period-btn rounded-lg px-3.5 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100"
+                  data-period="custom"
+                >
+                  Personalizado
+                </button>
+              </div>
+              <div
+                class="hidden grid gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4 sm:grid-cols-2"
+                id="customRange"
+              >
+                <label class="text-sm font-medium text-slate-700">
+                  Data inicial
+                  <input
+                    class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+                    id="customStart"
+                    type="date"
+                  />
+                </label>
+                <label class="text-sm font-medium text-slate-700">
+                  Data final
+                  <input
+                    class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+                    id="customEnd"
+                    type="date"
+                  />
+                </label>
+              </div>
+            </div>
+            <div class="border-b border-slate-200 px-4 py-3 sm:px-5">
+              <div
+                class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+              >
+                <div>
+                  <p class="text-sm text-slate-500" id="listDescription">
+                    Exibindo os gastos de hoje.
+                  </p>
+                </div>
+                <div class="relative">
+                  <input
+                    class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm outline-none placeholder:text-slate-400 focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-100 sm:w-64"
+                    id="searchInput"
+                    placeholder="Buscar gasto..."
+                    type="search"
+                  />
+                </div>
+              </div>
+            </div>
+            <div
+              class="flex min-h-64 items-center justify-center p-8"
+              id="loadingState"
+            >
+              <div class="text-center">
+                <div class="spinner-dark mx-auto"></div>
+                <p class="mt-3 text-sm font-medium text-slate-600">
+                  Carregando dados do Supabase...
+                </p>
+              </div>
+            </div>
+            <div class="hidden p-6" id="errorState">
+              <div class="rounded-xl border border-red-200 bg-red-50 p-5">
+                <h3 class="font-semibold text-red-900">
+                  Não foi possível carregar os gastos
+                </h3>
+                <p
+                  class="mt-1 whitespace-pre-wrap text-sm text-red-700"
+                  id="errorMessage"
+                ></p>
+                <button
+                  class="mt-4 rounded-lg bg-red-700 px-4 py-2 text-sm font-semibold text-white hover:bg-red-800"
+                  id="retryBtn"
+                  type="button"
+                >
+                  Tentar novamente
+                </button>
+              </div>
+            </div>
+            <div class="hidden p-10 text-center" id="emptyState">
+              <div
+                class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-2xl"
+              >
+                R$
+              </div>
+              <h3 class="mt-4 font-semibold text-slate-900">
+                Nenhum gasto encontrado
+              </h3>
+              <p class="mx-auto mt-1 max-w-md text-sm text-slate-500">
+                Não há registros correspondentes ao período e à busca
+                selecionados.
               </p>
-<p class="truncate text-xs text-slate-400" id="periodLabel">
-                Hoje
-              </p>
-</div>
-<p class="mt-0.5 text-xs text-slate-400" id="totalCount">
-              0 gastos
-            </p>
-</div>
-<div class="px-5 py-4">
-<p class="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
-              Maior gasto
-            </p>
-<div class="mt-1 flex items-baseline gap-2">
-<p class="money text-xl font-bold tracking-tight text-slate-950" id="largestValue">
-                R$ 0,00
-              </p>
-</div>
-<p class="mt-0.5 truncate text-xs text-slate-400" id="largestName">
-              Nenhum gasto
-            </p>
-</div>
-<div class="px-5 py-4">
-<p class="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
-              Média por gasto
-            </p>
-<p class="money mt-1 text-xl font-bold tracking-tight text-slate-950" id="averageValue">
-              R$ 0,00
-            </p>
-<p class="mt-0.5 text-xs text-slate-400">No período selecionado</p>
-</div>
-</div>
-</section></aside></div></main>
-<!-- Modal -->
-<div class="modal-backdrop fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/50 p-4" id="modal">
-<div class="fade-in w-full max-w-lg rounded-2xl bg-white shadow-2xl">
-<div class="flex items-start justify-between border-b border-slate-200 p-5 sm:p-6">
-<div>
-<h2 class="text-xl font-bold text-slate-950" id="modalTitle">
+              <button
+                class="mt-5 rounded-xl bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-800"
+                id="emptyNewBtn"
+                type="button"
+              >
+                Adicionar gasto
+              </button>
+            </div>
+            <div class="hidden overflow-x-auto" id="tableWrap">
+              <table class="w-full min-w-[850px] text-left">
+                <thead class="border-b border-slate-200 bg-slate-50">
+                  <tr
+                    class="text-xs font-semibold uppercase tracking-wider text-slate-500"
+                  >
+                    <th class="px-6 py-3">Gasto</th>
+                    <th class="px-6 py-3">Descrição</th>
+                    <th class="px-6 py-3">Data</th>
+                    <th class="px-6 py-3">Hora</th>
+                    <th class="px-6 py-3 text-right">Valor</th>
+                    <th class="px-6 py-3 text-right">Ações</th>
+                  </tr>
+                </thead>
+                <tbody
+                  class="divide-y divide-slate-100"
+                  id="expenseBody"
+                ></tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+        <aside class="space-y-4 lg:col-span-2 lg:sticky lg:top-4">
+          <section
+            class="rounded-2xl border border-slate-200 bg-white shadow-sm"
+          >
+            <div class="grid grid-cols-1 divide-y divide-slate-200">
+              <div class="px-5 py-4">
+                <p
+                  class="text-[11px] font-semibold uppercase tracking-wide text-slate-500"
+                >
+                  Total gasto
+                </p>
+                <div class="mt-1 flex items-baseline gap-2">
+                  <p
+                    class="money text-xl font-bold tracking-tight text-slate-950"
+                    id="totalValue"
+                  >
+                    R$ 0,00
+                  </p>
+                  <p class="truncate text-xs text-slate-400" id="periodLabel">
+                    Hoje
+                  </p>
+                </div>
+                <p class="mt-0.5 text-xs text-slate-400" id="totalCount">
+                  0 gastos
+                </p>
+              </div>
+              <div class="px-5 py-4">
+                <p
+                  class="text-[11px] font-semibold uppercase tracking-wide text-slate-500"
+                >
+                  Maior gasto
+                </p>
+                <div class="mt-1 flex items-baseline gap-2">
+                  <p
+                    class="money text-xl font-bold tracking-tight text-slate-950"
+                    id="largestValue"
+                  >
+                    R$ 0,00
+                  </p>
+                </div>
+                <p
+                  class="mt-0.5 truncate text-xs text-slate-400"
+                  id="largestName"
+                >
+                  Nenhum gasto
+                </p>
+              </div>
+              <div class="px-5 py-4">
+                <p
+                  class="text-[11px] font-semibold uppercase tracking-wide text-slate-500"
+                >
+                  Média por gasto
+                </p>
+                <p
+                  class="money mt-1 text-xl font-bold tracking-tight text-slate-950"
+                  id="averageValue"
+                >
+                  R$ 0,00
+                </p>
+                <p class="mt-0.5 text-xs text-slate-400">
+                  No período selecionado
+                </p>
+              </div>
+            </div>
+          </section>
+        </aside>
+      </div>
+    </main>
+    <!-- Modal -->
+    <div
+      class="modal-backdrop fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/50 p-4"
+      id="modal"
+    >
+      <div class="fade-in w-full max-w-lg rounded-2xl bg-white shadow-2xl">
+        <div
+          class="flex items-start justify-between border-b border-slate-200 p-5 sm:p-6"
+        >
+          <div>
+            <h2 class="text-xl font-bold text-slate-950" id="modalTitle">
               Novo gasto
             </h2>
-<p class="mt-1 text-sm text-slate-500">
+            <p class="mt-1 text-sm text-slate-500">
               Os dados serão enviados diretamente ao Supabase.
             </p>
-</div>
-<button aria-label="Fechar" class="rounded-lg p-2 text-xl leading-none text-slate-400 hover:bg-slate-100 hover:text-slate-700" id="closeModalBtn" type="button">
+          </div>
+          <button
+            aria-label="Fechar"
+            class="rounded-lg p-2 text-xl leading-none text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+            id="closeModalBtn"
+            type="button"
+          >
             ×
           </button>
-</div>
-<form class="space-y-4 p-5 sm:p-6" id="expenseForm" novalidate="">
-<input id="expenseId" type="hidden"/>
-<label class="block">
-<span class="text-sm font-semibold text-slate-700">Nome do gasto <span class="text-red-600">*</span></span>
-<input class="mt-1.5 block w-full rounded-xl border border-slate-300 px-3.5 py-3 text-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100" id="name" maxlength="150" placeholder="Ex.: Almoço, Gasolina" required="" type="text"/>
-<span class="mt-1 hidden text-xs font-medium text-red-600" data-error="name"></span>
-</label>
-<label class="block">
-<span class="text-sm font-semibold text-slate-700">Descrição</span>
-<textarea class="mt-1.5 block w-full resize-none rounded-xl border border-slate-300 px-3.5 py-3 text-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100" id="description" maxlength="1000" placeholder="Detalhes ou observações opcionais" rows="3"></textarea>
-</label>
-<div class="grid gap-4 sm:grid-cols-2">
-<label class="block">
-<span class="text-sm font-semibold text-slate-700">Data <span class="text-red-600">*</span></span>
-<input class="mt-1.5 block w-full rounded-xl border border-slate-300 px-3.5 py-3 text-sm outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100" id="date" required="" type="date"/>
-<span class="mt-1 hidden text-xs font-medium text-red-600" data-error="date"></span>
-</label>
-<label class="block">
-<span class="text-sm font-semibold text-slate-700">Hora <span class="text-red-600">*</span></span>
-<input class="mt-1.5 block w-full rounded-xl border border-slate-300 px-3.5 py-3 text-sm outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100" id="time" required="" type="time"/>
-<span class="mt-1 hidden text-xs font-medium text-red-600" data-error="time"></span>
-</label>
-</div>
-<label class="block">
-<span class="text-sm font-semibold text-slate-700">Valor do gasto (R$) <span class="text-red-600">*</span></span>
-<div class="relative mt-1.5">
-<span class="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-semibold text-slate-400">R$</span>
-<input class="block w-full rounded-xl border border-slate-300 py-3 pl-11 pr-3.5 text-sm outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100" id="amount" inputmode="decimal" min="0.01" placeholder="0,00" required="" step="0.01" type="number"/>
-</div>
-<span class="mt-1 hidden text-xs font-medium text-red-600" data-error="amount"></span>
-</label>
-<div class="hidden rounded-xl border border-red-200 bg-red-50 p-3 text-sm font-medium text-red-700" id="formError"></div>
-<div class="flex flex-col-reverse gap-2 border-t border-slate-100 pt-4 sm:flex-row sm:justify-end">
-<button class="rounded-xl border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50" id="cancelBtn" type="button">
+        </div>
+        <form class="space-y-4 p-5 sm:p-6" id="expenseForm" novalidate="">
+          <input id="expenseId" type="hidden" />
+          <label class="block">
+            <span class="text-sm font-semibold text-slate-700"
+              >Nome do gasto <span class="text-red-600">*</span></span
+            >
+            <input
+              class="mt-1.5 block w-full rounded-xl border border-slate-300 px-3.5 py-3 text-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
+              id="name"
+              maxlength="150"
+              placeholder="Ex.: Almoço, Gasolina"
+              required=""
+              type="text"
+            />
+            <span
+              class="mt-1 hidden text-xs font-medium text-red-600"
+              data-error="name"
+            ></span>
+          </label>
+          <label class="block">
+            <span class="text-sm font-semibold text-slate-700">Descrição</span>
+            <textarea
+              class="mt-1.5 block w-full resize-none rounded-xl border border-slate-300 px-3.5 py-3 text-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
+              id="description"
+              maxlength="1000"
+              placeholder="Detalhes ou observações opcionais"
+              rows="3"
+            ></textarea>
+          </label>
+          <div class="grid gap-4 sm:grid-cols-2">
+            <label class="block">
+              <span class="text-sm font-semibold text-slate-700"
+                >Data <span class="text-red-600">*</span></span
+              >
+              <input
+                class="mt-1.5 block w-full rounded-xl border border-slate-300 px-3.5 py-3 text-sm outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
+                id="date"
+                required=""
+                type="date"
+              />
+              <span
+                class="mt-1 hidden text-xs font-medium text-red-600"
+                data-error="date"
+              ></span>
+            </label>
+            <label class="block">
+              <span class="text-sm font-semibold text-slate-700"
+                >Hora <span class="text-red-600">*</span></span
+              >
+              <input
+                class="mt-1.5 block w-full rounded-xl border border-slate-300 px-3.5 py-3 text-sm outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
+                id="time"
+                required=""
+                type="time"
+              />
+              <span
+                class="mt-1 hidden text-xs font-medium text-red-600"
+                data-error="time"
+              ></span>
+            </label>
+          </div>
+          <label class="block">
+            <span class="text-sm font-semibold text-slate-700"
+              >Valor do gasto (R$) <span class="text-red-600">*</span></span
+            >
+            <div class="relative mt-1.5">
+              <span
+                class="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-semibold text-slate-400"
+                >R$</span
+              >
+              <input
+                class="block w-full rounded-xl border border-slate-300 py-3 pl-11 pr-3.5 text-sm outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
+                id="amount"
+                inputmode="decimal"
+                min="0.01"
+                placeholder="0,00"
+                required=""
+                step="0.01"
+                type="number"
+              />
+            </div>
+            <span
+              class="mt-1 hidden text-xs font-medium text-red-600"
+              data-error="amount"
+            ></span>
+          </label>
+          <div
+            class="hidden rounded-xl border border-red-200 bg-red-50 p-3 text-sm font-medium text-red-700"
+            id="formError"
+          ></div>
+          <div
+            class="flex flex-col-reverse gap-2 border-t border-slate-100 pt-4 sm:flex-row sm:justify-end"
+          >
+            <button
+              class="rounded-xl border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+              id="cancelBtn"
+              type="button"
+            >
               Cancelar
             </button>
-<button class="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-950 px-5 py-2.5 text-sm font-semibold text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60" id="saveBtn" type="submit">
-<span class="spinner hidden" id="saveSpinner"></span>
-<span id="saveText">Salvar gasto</span>
-</button>
-</div>
-</form>
-</div>
-</div>
-<!-- Delete confirmation -->
-<div class="modal-backdrop fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/50 p-4" id="deleteModal">
-<div class="fade-in w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
-<div class="flex h-12 w-12 items-center justify-center rounded-xl bg-red-100 text-red-700">
+            <button
+              class="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-950 px-5 py-2.5 text-sm font-semibold text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+              id="saveBtn"
+              type="submit"
+            >
+              <span class="spinner hidden" id="saveSpinner"></span>
+              <span id="saveText">Salvar gasto</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+    <!-- Delete confirmation -->
+    <div
+      class="modal-backdrop fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/50 p-4"
+      id="deleteModal"
+    >
+      <div class="fade-in w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
+        <div
+          class="flex h-12 w-12 items-center justify-center rounded-xl bg-red-100 text-red-700"
+        >
           !
         </div>
-<h2 class="mt-4 text-xl font-bold text-slate-950">Excluir gasto?</h2>
-<p class="mt-2 text-sm leading-6 text-slate-500" id="deleteText">
+        <h2 class="mt-4 text-xl font-bold text-slate-950">Excluir gasto?</h2>
+        <p class="mt-2 text-sm leading-6 text-slate-500" id="deleteText">
           Essa ação removerá o registro do Supabase e não pode ser desfeita.
         </p>
-<div class="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-<button class="rounded-xl border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50" id="deleteCancelBtn" type="button">
+        <div
+          class="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end"
+        >
+          <button
+            class="rounded-xl border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+            id="deleteCancelBtn"
+            type="button"
+          >
             Cancelar
           </button>
-<button class="inline-flex items-center justify-center gap-2 rounded-xl bg-red-700 px-5 py-2.5 text-sm font-semibold text-white hover:bg-red-800 disabled:opacity-60" id="deleteConfirmBtn" type="button">
-<span class="spinner hidden" id="deleteSpinner"></span>
+          <button
+            class="inline-flex items-center justify-center gap-2 rounded-xl bg-red-700 px-5 py-2.5 text-sm font-semibold text-white hover:bg-red-800 disabled:opacity-60"
+            id="deleteConfirmBtn"
+            type="button"
+          >
+            <span class="spinner hidden" id="deleteSpinner"></span>
             Excluir
           </button>
-</div>
-</div>
-</div>
-<!-- Connection status -->
-<section class="mb-6 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-amber-900" id="connectionBanner" style="display:none !important">
-<div class="flex items-start gap-3">
-<div class="mt-0.5 h-2.5 w-2.5 shrink-0 rounded-full bg-amber-500"></div>
-</div>
-</section>
-<script>
+        </div>
+      </div>
+    </div>
+    <!-- Connection status -->
+    <section
+      class="mb-6 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-amber-900"
+      id="connectionBanner"
+      style="display: none !important"
+    >
+      <div class="flex items-start gap-3">
+        <div
+          class="mt-0.5 h-2.5 w-2.5 shrink-0 rounded-full bg-amber-500"
+        ></div>
+      </div>
+    </section>
+    <script>
       // ============================================================
       // SUPABASE — PREENCHA ESTAS DUAS CONSTANTES ANTES DE PUBLICAR
       // ============================================================
@@ -903,14 +1105,17 @@
       async function initApp() {
         if (!isConfigured) {
           showError(
-            "As credenciais do Supabase não estão configuradas corretamente no início do script."
+            "As credenciais do Supabase não estão configuradas corretamente no início do script.",
           );
           return;
         }
 
-        if (!window.supabase || typeof window.supabase.createClient !== "function") {
+        if (
+          !window.supabase ||
+          typeof window.supabase.createClient !== "function"
+        ) {
           showError(
-            "A biblioteca do Supabase não foi carregada. Verifique sua conexão com a internet e recarregue a página."
+            "A biblioteca do Supabase não foi carregada. Verifique sua conexão com a internet e recarregue a página.",
           );
           return;
         }
@@ -928,5 +1133,5 @@
 
       initApp();
     </script>
-</body>
+  </body>
 </html>
