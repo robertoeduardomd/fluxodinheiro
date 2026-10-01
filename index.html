@@ -3,1890 +3,1173 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>MeuControle</title>
-
-    <!-- Fontes e Ícones -->
-    <link
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-      rel="stylesheet"
+    <meta
+      name="description"
+      content="Gestor de Gastos e Finanças Pessoais com Supabase"
     />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
-      rel="stylesheet"
-    />
+    <title>Finanças — Gestor de Gastos</title>
 
-    <!-- Supabase JS Client library -->
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Supabase JS v2 via CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"],
+            },
+          },
+        },
+      };
+    </script>
+
     <style>
-      :root {
-        /* Theme Palette */
-        --bg-body: #111213; /* Dark slate background */
-        --bg-card: #003385; /* Card background */
-        --bg-card-hover: #26334d;
-        --bg-input: #0b1120; /* Dark input background */
-        --border-color: #334155; /* Subtle borders */
-        --border-focus: #0ea5e9;
-
-        /* Accent Colors */
-        --brand-blue: #0ea5e9;
-        --brand-blue-hover: #0284c7;
-        --brand-green: #10b981;
-        --brand-green-hover: #059669;
-        --expense-red: #ef4444;
-        --expense-red-hover: #dc2626;
-        --expense-red-glow: rgba(239, 68, 68, 0.2);
-
-        /* Text Colors */
-        --text-main: #f8fafc;
-        --text-muted: #94a3b8;
-        --text-dim: #64748b;
-
-        /* UI Radius & Shadows */
-        --radius-sm: 8px;
-        --radius-md: 12px;
-        --radius-lg: 16px;
-        --shadow-main: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
-        --shadow-glow: 0 0 20px rgba(14, 165, 233, 0.15);
+      html {
+        scroll-behavior: smooth;
       }
-
-      * {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-      }
-
       body {
-        font-family: "Inter", sans-serif;
-        background-color: var(--bg-body);
-        color: var(--text-main);
-        min-height: 100vh;
-        display: flex;
-        flex-direction: column;
-        -webkit-font-smoothing: antialiased;
+        background: #f8fafc;
       }
-
-      ::-webkit-scrollbar {
-        width: 8px;
-        height: 8px;
+      .modal-backdrop {
+        backdrop-filter: blur(5px);
       }
-      ::-webkit-scrollbar-track {
-        background: var(--bg-body);
-      }
-      ::-webkit-scrollbar-thumb {
-        background: var(--border-color);
-        border-radius: 4px;
-      }
-      ::-webkit-scrollbar-thumb:hover {
-        background: var(--text-dim);
-      }
-
-      .header {
-        background-color: rgba(30, 41, 59, 0.9);
-        backdrop-filter: blur(12px);
-        border-bottom: 1px solid var(--border-color);
-        position: sticky;
-        top: 0;
-        z-index: 50;
-      }
-
-      .header-container {
-        max-width: 1350px;
-        margin: 0 auto;
-        padding: 0.25rem 1.2rem;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 1rem;
-      }
-
-      .logo-area {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-      }
-
-      .logo-icon {
-        background: linear-gradient(
-          135deg,
-          var(--brand-blue),
-          var(--brand-green)
-        );
-        color: white;
-        width: 42px;
-        height: 42px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: var(--radius-md);
-        font-size: 1.2rem;
-        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
-      }
-
-      .logo-text h1 {
-        font-size: 1.25rem;
-        font-weight: 800;
-        letter-spacing: -0.02em;
-      }
-
-      .logo-text h1 span {
-        color: var(--brand-blue);
-      }
-
-      .logo-text p {
-        font-size: 0.75rem;
-        color: var(--text-muted);
-      }
-
-      .header-actions {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        flex-wrap: wrap;
-      }
-
-      .status-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        padding: 6px 14px;
-        border-radius: 20px;
-        font-size: 0.75rem;
-        font-weight: 600;
-        transition: all 0.3s ease;
-      }
-
-      .status-badge.connected {
-        background-color: rgba(16, 185, 129, 0.12);
-        color: var(--brand-green);
-        border: 1px solid rgba(16, 185, 129, 0.3);
-      }
-
-      .status-badge.disconnected {
-        background-color: rgba(239, 68, 68, 0.12);
-        color: var(--expense-red);
-        border: 1px solid rgba(239, 68, 68, 0.3);
-      }
-
-      .status-badge.warning {
-        background-color: rgba(245, 158, 11, 0.12);
-        color: #fbbf24;
-        border: 1px solid rgba(245, 158, 11, 0.3);
-      }
-
-      .status-badge.demo {
-        background-color: rgba(14, 165, 233, 0.12);
-        color: var(--brand-blue);
-        border: 1px solid rgba(14, 165, 233, 0.3);
-      }
-
-      .status-dot {
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        background-color: currentColor;
-      }
-
-      .status-badge.connected .status-dot {
-        animation: pulse-green 2s infinite;
-      }
-
-      @keyframes pulse-green {
-        0% {
-          box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
-        }
-        70% {
-          box-shadow: 0 0 0 6px rgba(16, 185, 129, 0);
-        }
-        100% {
-          box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
-        }
-      }
-
-      .app-wrapper {
-        max-width: 1350px;
-        margin: 0 auto;
-        padding: 1.5rem;
-        flex-grow: 1;
-        width: 100%;
-      }
-
-      .metrics-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-        gap: 1.25rem;
-        margin-bottom: 1.5rem;
-      }
-
-      .metric-card {
-        background-color: var(--bg-card);
-        border: 1px solid var(--border-color);
-        border-radius: var(--radius-md);
-        padding: 1.25rem 1.5rem;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        box-shadow: var(--shadow-main);
-        position: relative;
-        overflow: hidden;
-        transition:
-          transform 0.2s ease,
-          border-color 0.2s ease;
-      }
-
-      .metric-card:hover {
-        transform: translateY(-2px);
-        border-color: rgba(14, 165, 233, 0.4);
-      }
-
-      .metric-card.highlight {
-        background: linear-gradient(
-          145deg,
-          var(--bg-card),
-          rgba(239, 68, 68, 0.08)
-        );
-        border: 1px solid rgba(239, 68, 68, 0.35);
-        box-shadow: 0 10px 25px -5px rgba(239, 68, 68, 0.15);
-      }
-
-      .metric-title {
-        font-size: 0.75rem;
-        text-transform: uppercase;
-        font-weight: 700;
-        color: var(--text-muted);
-        letter-spacing: 0.05em;
-      }
-
-      .metric-subtitle {
-        font-size: 0.7rem;
-        color: var(--text-dim);
-        margin-top: 2px;
-      }
-
-      .metric-value {
-        font-size: 1.65rem;
-        font-weight: 800;
-        margin-top: 0.25rem;
-        letter-spacing: -0.02em;
-      }
-
-      .metric-value.red {
-        color: #f87171;
-        text-shadow: 0 0 12px var(--expense-red-glow);
-      }
-
-      .metric-icon {
-        font-size: 1.4rem;
-        padding: 12px;
-        border-radius: var(--radius-md);
-        background-color: rgba(255, 255, 255, 0.04);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 48px;
-        height: 48px;
-      }
-
-      .icon-red {
-        color: var(--expense-red);
-        border: 1px solid rgba(239, 68, 68, 0.25);
-        background: rgba(239, 68, 68, 0.08);
-      }
-      .icon-blue {
-        color: var(--brand-blue);
-        border: 1px solid rgba(14, 165, 233, 0.25);
-        background: rgba(14, 165, 233, 0.08);
-      }
-      .icon-green {
-        color: var(--brand-green);
-        border: 1px solid rgba(16, 185, 129, 0.25);
-        background: rgba(16, 185, 129, 0.08);
-      }
-
-      .main-grid {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 1.5rem;
-        align-items: start;
-      }
-
-      @media (min-width: 900px) {
-        .main-grid {
-          grid-template-columns: minmax(0, 7fr) minmax(0, 3fr);
-        }
-      }
-
-      .card {
-        background-color: var(--bg-card);
-        border: 1px solid var(--border-color);
-        border-radius: var(--radius-lg);
-        box-shadow: var(--shadow-main);
-        overflow: hidden;
-      }
-
-      /* Toolbar and filters above table */
-      .table-toolbar {
-        padding: 1.25rem 1.5rem;
-        border-bottom: 1px solid var(--border-color);
-        background-color: rgba(0, 0, 0, 0.15);
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
-      }
-
-      @media (min-width: 768px) {
-        .table-toolbar {
-          flex-direction: row;
-          justify-content: space-between;
-          align-items: center;
-        }
-      }
-
-      .toolbar-title {
-        font-size: 1.1rem;
-        font-weight: 700;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-      }
-
-      .filter-pills {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        flex-wrap: wrap;
-      }
-
-      .btn-pill {
-        background-color: var(--bg-input);
-        border: 1px solid var(--border-color);
-        color: var(--text-muted);
-        padding: 0.45rem 0.95rem;
-        border-radius: 20px;
-        font-size: 0.78rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-      }
-
-      .btn-pill:hover {
-        border-color: var(--brand-blue);
-        color: var(--text-main);
-        background-color: rgba(14, 165, 233, 0.08);
-      }
-
-      .btn-pill.active {
-        background-color: var(--brand-blue);
-        border-color: var(--brand-blue);
-        color: white;
-        box-shadow: 0 2px 10px rgba(14, 165, 233, 0.35);
-      }
-
-      .toolbar-controls {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        flex-wrap: wrap;
-      }
-
-      .search-box {
-        position: relative;
-        flex: 1;
-        min-width: 180px;
-      }
-
-      .search-box i {
-        position: absolute;
-        left: 12px;
-        top: 50%;
-        transform: translateY(-50%);
-        color: var(--text-dim);
-        font-size: 0.85rem;
-      }
-
-      .search-box input {
-        padding-left: 34px !important;
-      }
-
-      .input-control {
-        background-color: var(--bg-input);
-        border: 1px solid var(--border-color);
-        color: var(--text-main);
-        padding: 0.65rem 0.9rem;
-        border-radius: var(--radius-sm);
-        font-size: 0.875rem;
-        font-family: inherit;
-        width: 100%;
-        transition:
-          border-color 0.2s,
-          box-shadow 0.2s;
-      }
-
-      .input-control:focus {
-        outline: none;
-        border-color: var(--border-focus);
-        box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.2);
-      }
-
-      .input-control::placeholder {
-        color: var(--text-dim);
-      }
-
-      /* Sidebar Form Styling */
-      .sidebar-card {
-        padding: 1.25rem;
-      }
-
-      .sidebar-title {
-        font-size: 1.05rem;
-        font-weight: 700;
-        padding-bottom: 0.85rem;
-        margin-bottom: 1rem;
-        border-bottom: 1px solid var(--border-color);
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        color: var(--text-main);
-      }
-
-      .sidebar-form {
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
-      }
-
-      .form-group {
-        display: flex;
-        flex-direction: column;
-        gap: 0.4rem;
-      }
-
-      .form-group label {
-        font-size: 0.75rem;
-        font-weight: 600;
-        color: var(--text-muted);
-        display: flex;
-        justify-content: space-between;
-      }
-
-      .btn {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        padding: 0.7rem 1.2rem;
-        border-radius: var(--radius-sm);
-        font-size: 0.875rem;
-        font-weight: 600;
-        border: none;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        font-family: inherit;
-      }
-
-      .btn:active {
-        transform: translateY(1px);
-      }
-
-      .btn-green {
-        background-color: var(--brand-green);
-        color: white;
-        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
-      }
-
-      .btn-green:hover {
-        background-color: var(--brand-green-hover);
-      }
-
-      .btn-outline {
-        background-color: transparent;
-        border: 1px solid var(--border-color);
-        color: var(--text-main);
-      }
-
-      .btn-outline:hover {
-        background-color: rgba(255, 255, 255, 0.05);
-        border-color: var(--text-muted);
-      }
-
-      .btn-danger {
-        background-color: var(--expense-red);
-        color: white;
-      }
-
-      .btn-danger:hover {
-        background-color: var(--expense-red-hover);
-      }
-
-      .btn-danger-ghost {
-        background: transparent;
-        border: none;
-        color: var(--text-muted);
-        padding: 8px;
-        border-radius: 6px;
-        cursor: pointer;
-        transition:
-          color 0.2s,
-          background 0.2s;
-      }
-
-      .btn-danger-ghost:hover {
-        color: var(--expense-red);
-        background-color: rgba(239, 68, 68, 0.12);
-      }
-
-      /* Table Styling */
-      .table-container {
-        width: 100%;
-        overflow-x: auto;
-      }
-
-      .expense-table {
-        width: 100%;
-        border-collapse: collapse;
-        text-align: left;
-      }
-
-      .expense-table th {
-        background-color: rgba(0, 0, 0, 0.25);
-        padding: 0.85rem 1.25rem;
-        font-size: 0.725rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        color: var(--text-muted);
-        letter-spacing: 0.05em;
-        border-bottom: 1px solid var(--border-color);
-      }
-
-      .expense-table td {
-        padding: 1rem 1.25rem;
-        font-size: 0.875rem;
-        border-bottom: 1px solid rgba(51, 65, 85, 0.5);
-        vertical-align: middle;
-      }
-
-      .expense-table tbody tr {
-        transition: background-color 0.15s;
-      }
-
-      .expense-table tbody tr:hover {
-        background-color: var(--bg-card-hover);
-        transform: scale(1.05);
-      }
-
-      .expense-name {
-        font-weight: 600;
-        color: var(--text-main);
-      }
-
-      .expense-desc {
-        font-size: 0.75rem;
-        color: var(--text-muted);
-        margin-top: 2px;
-      }
-
-      .expense-amount {
-        font-weight: 700;
-        color: #f87171;
-        white-space: nowrap;
-      }
-
-      .expense-date {
-        font-size: 0.8rem;
-        color: var(--text-muted);
-        white-space: nowrap;
-      }
-
-      .state-box {
-        padding: 3.5rem 2rem;
-        text-align: center;
-        color: var(--text-muted);
-      }
-
-      .state-box i {
-        font-size: 2.5rem;
-        margin-bottom: 0.85rem;
-        color: var(--text-dim);
-      }
-
-      .state-box h4 {
-        color: var(--text-main);
-        font-size: 1.05rem;
-        margin-bottom: 0.4rem;
-      }
-
-      .state-box p {
-        font-size: 0.85rem;
-        max-width: 420px;
-        margin: 0 auto;
-      }
-
       .spinner {
-        width: 36px;
-        height: 36px;
-        border: 3px solid rgba(14, 165, 233, 0.2);
-        border-top-color: var(--brand-blue);
+        width: 20px;
+        height: 20px;
         border-radius: 50%;
-        animation: spin 0.9s linear infinite;
-        margin: 0 auto 1rem;
+        border: 3px solid rgba(255, 255, 255, 0.35);
+        border-top-color: white;
+        animation: spin 0.7s linear infinite;
       }
-
+      .spinner-dark {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        border: 3px solid #e2e8f0;
+        border-top-color: #0f172a;
+        animation: spin 0.7s linear infinite;
+      }
       @keyframes spin {
         to {
           transform: rotate(360deg);
         }
       }
-      .hidden {
-        display: none !important;
+      .fade-in {
+        animation: fade 0.2s ease-out;
       }
-
-      #toast-container {
-        position: fixed;
-        bottom: 24px;
-        right: 24px;
-        z-index: 1000;
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-        max-width: 420px;
-        width: calc(100% - 48px);
-        pointer-events: none;
-      }
-
-      .toast {
-        pointer-events: auto;
-        background-color: var(--bg-card);
-        border: 1px solid var(--border-color);
-        border-left: 4px solid var(--brand-blue);
-        padding: 1rem 1.25rem;
-        border-radius: var(--radius-sm);
-        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5);
-        display: flex;
-        align-items: flex-start;
-        gap: 12px;
-        color: var(--text-main);
-        font-size: 0.85rem;
-        animation: toastIn 0.3s ease forwards;
-      }
-
-      .toast.error {
-        border-left-color: var(--expense-red);
-      }
-      .toast.success {
-        border-left-color: var(--brand-green);
-      }
-      .toast.warning {
-        border-left-color: #f59e0b;
-      }
-
-      .toast i {
-        font-size: 1.1rem;
-        margin-top: 2px;
-      }
-      .toast.error i {
-        color: var(--expense-red);
-      }
-      .toast.success i {
-        color: var(--brand-green);
-      }
-      .toast.warning i {
-        color: #f59e0b;
-      }
-
-      .toast-content {
-        flex: 1;
-      }
-      .toast-title {
-        font-weight: 700;
-        margin-bottom: 2px;
-      }
-
-      @keyframes toastIn {
+      @keyframes fade {
         from {
-          transform: translateY(20px);
           opacity: 0;
+          transform: translateY(4px);
         }
         to {
-          transform: translateY(0);
           opacity: 1;
+          transform: none;
         }
       }
-
-      /* Modal Overlay & Card */
-      .modal-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        background-color: rgba(15, 23, 42, 0.82);
-        backdrop-filter: blur(6px);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        z-index: 200;
-        padding: 1rem;
-      }
-
-      .modal-card {
-        background-color: var(--bg-card);
-        border: 1px solid var(--border-color);
-        border-radius: var(--radius-lg);
-        width: 100%;
-        max-width: 580px;
-        padding: 1.75rem;
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
-        max-height: 90vh;
-        overflow-y: auto;
-      }
-
-      .modal-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding-bottom: 1rem;
-        border-bottom: 1px solid var(--border-color);
-        margin-bottom: 1.25rem;
-      }
-
-      .modal-header h3 {
-        font-size: 1.15rem;
-        font-weight: 700;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-      }
-
-      .btn-close {
-        background: transparent;
-        border: none;
-        color: var(--text-muted);
-        font-size: 1.2rem;
-        cursor: pointer;
-      }
-
-      .btn-close:hover {
-        color: var(--text-main);
-      }
-
-      .sql-box {
-        background-color: #060913;
-        border: 1px solid var(--border-color);
-        color: #38bdf8;
-        padding: 0.85rem;
-        border-radius: var(--radius-sm);
-        font-family: monospace;
-        font-size: 0.75rem;
-        line-height: 1.4;
-        white-space: pre-wrap;
-        word-break: break-all;
-        user-select: all;
-        margin-top: 0.5rem;
-        max-height: 160px;
-        overflow-y: auto;
-      }
-
-      footer {
-        text-align: center;
-        padding: 1.5rem;
-        color: var(--text-dim);
-        font-size: 0.75rem;
-        border-top: 1px solid var(--border-color);
-        margin-top: 2rem;
+      .money {
+        font-variant-numeric: tabular-nums;
       }
     </style>
   </head>
-  <body>
-    <header class="header">
-      <div class="header-container">
-        <div class="logo-area">
-          <div class="logo-text">
-            <h1>Controle de gastos<span>.</span></h1>
-            <p>Gestão Financeira</p>
+
+  <body class="min-h-screen text-slate-900">
+    <div
+      id="toastRoot"
+      class="fixed right-4 top-4 z-[100] flex w-[min(420px,calc(100vw-2rem))] flex-col gap-3"
+    ></div>
+
+    <header class="border-b border-slate-200 bg-white">
+      <div class="mx-auto max-w-7xl px-4 py-5 sm:px-6 lg:px-8">
+        <div
+          class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+        >
+          <div>
+            <p
+              class="text-sm font-semibold uppercase tracking-wider text-indigo-600"
+            >
+              Finanças pessoais
+            </p>
+            <h1
+              class="mt-1 text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl"
+            >
+              Gestor de Gastos
+            </h1>
+            <p class="mt-1 text-sm text-slate-500">
+              Seus registros são lidos e gravados diretamente no Supabase.
+            </p>
           </div>
-        </div>
-
-        <div class="header-actions">
-          <div id="connection-status" class="status-badge warning">
-            <div class="status-dot"></div>
-            <span id="status-text">Não Configurado</span>
-          </div>
-
-        
-
-          <button
-            onclick="openConfigModal()"
-            class="btn btn-outline"
-            style="padding: 0.5rem 0.9rem; font-size: 0.8rem"
-          >
-            <i class="fa-solid fa-gear"></i> Supabase
-          </button>
         </div>
       </div>
     </header>
 
-    <main class="app-wrapper">
-      <div id="toast-container"></div>
-
-      <!-- Cards de Métricas do topo com atualização imediata ao filtrar -->
-      <div class="metrics-grid">
-        <div class="metric-card highlight">
-          <div>
-            <div class="metric-title">Total Filtrado</div>
-            <div class="metric-subtitle" id="stat-subtitle">
-              Soma do período selecionado
-            </div>
-            <div id="stat-total" class="metric-value red">R$ 0,00</div>
-          </div>
-          <div class="metric-icon icon-red">
-            <i class="fa-solid fa-calculator"></i>
-          </div>
+    <main class="mx-auto max-w-6xl px-4 py-4 sm:px-6 lg:px-8">
+      <!-- Connection status -->
+      <section
+        id="connectionBanner"
+        class="mb-6 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-amber-900"
+      >
+        <div class="flex items-start gap-3">
+          <div
+            class="mt-0.5 h-2.5 w-2.5 shrink-0 rounded-full bg-amber-500"
+          ></div>
+       
         </div>
+      </section>
 
-        <div class="metric-card">
-          <div>
-            <div class="metric-title">Total de Registros</div>
-            <div class="metric-subtitle">Quantidade no período</div>
-            <div id="stat-count" class="metric-value">0</div>
-          </div>
-          <div class="metric-icon icon-blue">
-            <i class="fa-solid fa-receipt"></i>
-          </div>
-        </div>
-
-        <div class="metric-card">
-          <div>
-            <div class="metric-title">Maior Gasto</div>
-            <div class="metric-subtitle">Maior valor do período</div>
-            <div id="stat-max" class="metric-value red">R$ 0,00</div>
-          </div>
-          <div class="metric-icon icon-red">
-            <i class="fa-solid fa-arrow-trend-up"></i>
-          </div>
-        </div>
-      </div>
-
-      <div class="main-grid">
-        <!-- COLUNA PRINCIPAL (~70%): Tabela de Gastos -->
-        <section class="card">
-          <div class="table-toolbar">
-            <div class="toolbar-title">
-              <i
-                class="fa-solid fa-filter"
-                style="color: var(--brand-blue)"
-              ></i>
-              Filtrar por Período
+      <!-- Summary compacto -->
+      <section
+        class="mb-4 rounded-2xl border border-slate-200 bg-white shadow-sm"
+      >
+        <div
+          class="grid grid-cols-1 divide-y divide-slate-200 sm:grid-cols-3 sm:divide-x sm:divide-y-0"
+        >
+          <div class="px-4 py-3 sm:px-5">
+            <p
+              class="text-[11px] font-semibold uppercase tracking-wide text-slate-500"
+            >
+              Total gasto
+            </p>
+            <div class="mt-1 flex items-baseline gap-2">
+              <p
+                id="totalValue"
+                class="money text-xl font-bold tracking-tight text-slate-950"
+              >
+                R$ 0,00
+              </p>
+              <p id="periodLabel" class="truncate text-xs text-slate-400">
+                Hoje
+              </p>
             </div>
-
-            <!-- Filtro de Período -->
-            <div class="filter-pills">
-              <button
-                onclick="setPeriodFilter('tudo')"
-                id="filter-tudo"
-                class="btn-pill active"
-              >
-                <i class="fa-solid fa-infinity"></i> Tudo
-              </button>
-              <button
-                onclick="setPeriodFilter('hoje')"
-                id="filter-hoje"
-                class="btn-pill"
-              >
-                <i class="fa-solid fa-calendar-day"></i> Hoje
-              </button>
-              <button
-                onclick="setPeriodFilter('semana')"
-                id="filter-semana"
-                class="btn-pill"
-              >
-                <i class="fa-solid fa-calendar-week"></i> Esta Semana
-              </button>
-              <button
-                onclick="setPeriodFilter('mes')"
-                id="filter-mes"
-                class="btn-pill"
-              >
-                <i class="fa-solid fa-calendar-days"></i> Este Mês
-              </button>
-            </div>
-
-            <div class="toolbar-controls">
-              <!-- Busca por texto -->
-              <div class="search-box">
-                <i class="fa-solid fa-magnifying-glass"></i>
-                <input
-                  type="text"
-                  id="input-search"
-                  oninput="applyFiltersAndSort()"
-                  class="input-control"
-                  placeholder="Buscar despesa..."
-                  style="
-                    padding-top: 0.4rem;
-                    padding-bottom: 0.4rem;
-                    font-size: 0.8rem;
-                  "
-                />
-              </div>
-
-              <!-- Ordenação -->
-              <select
-                id="select-sort"
-                onchange="applyFiltersAndSort()"
-                class="input-control"
-                style="width: auto; padding: 0.4rem 0.6rem; font-size: 0.78rem"
-              >
-                <option value="recente">Mais Recentes</option>
-                <option value="antigo">Mais Antigos</option>
-                <option value="maior-valor">Maior Valor</option>
-                <option value="menor-valor">Menor Valor</option>
-              </select>
-            </div>
-          </div>
-
-          <!-- Tabela -->
-          <div class="table-container">
-            <table class="expense-table">
-              <thead>
-                <tr>
-                  <th>Gasto</th>
-                  <th>Data e Hora</th>
-                  <th>Valor</th>
-                  <th style="text-align: right">Ação</th>
-                </tr>
-              </thead>
-              <tbody id="tabela-gastos">
-                <!-- Conteúdo gerado via JS -->
-              </tbody>
-            </table>
-          </div>
-
-          <!-- Estados (Carregamento / Vazio) -->
-          <div id="loading-state" class="state-box">
-            <div class="spinner"></div>
-            <p>Buscando lançamentos...</p>
-          </div>
-
-          <div id="empty-state" class="state-box hidden">
-            <i class="fa-solid fa-folder-open"></i>
-            <h4 id="empty-title">Nenhum gasto encontrado</h4>
-            <p id="empty-msg">
-              Adicione um novo gasto no formulário ao lado ou ajuste os filtros
-              selecionados.
+            <p id="totalCount" class="mt-0.5 text-xs text-slate-400">
+              0 gastos
             </p>
           </div>
-        </section>
 
-        <!-- COLUNA LATERAL COMPACTA (~30%): Formulário de Cadastro -->
-        <aside class="card sidebar-card">
-          <div class="sidebar-title">
-            Novo Gasto
-            <i
-              class="fa-solid fa-circle-plus"
-              style="color: var(--brand-green)"
-            ></i>
-          </div>
-
-          <form
-            id="gasto-form"
-            onsubmit="handleFormSubmit(event)"
-            class="sidebar-form"
-          >
-            <div class="form-group">
-              <label for="input-nome">Nome do Gasto *</label>
-              <input
-                type="text"
-                id="input-nome"
-                class="input-control"
-                required
-                placeholder="Ex: Mercado, Combustível, Luz"
-              />
-            </div>
-            <div class="form-group">
-              <label for="input-descricao">Descrição (Opcional)</label>
-              <input
-                type="text"
-                id="input-descricao"
-                class="input-control"
-                placeholder="Ex: Pagamento no débito"
-              />
-            </div>
-
-            <div class="form-group">
-              <label for="input-valor">Valor (R$) *</label>
-              <input
-                type="number"
-                step="0.01"
-                min="0.01"
-                id="input-valor"
-                class="input-control"
-                required
-                placeholder="0,00"
-              />
-            </div>
-
-            <div class="form-group">
-              <label for="input-data">Data e Hora *</label>
-              <input
-                type="datetime-local"
-                id="input-data"
-                class="input-control"
-                required
-              />
-            </div>
-
-            <button
-              type="submit"
-              id="btn-submit"
-              class="btn btn-green"
-              style="width: 100%; margin-top: 0.5rem"
+          <div class="px-4 py-3 sm:px-5">
+            <p
+              class="text-[11px] font-semibold uppercase tracking-wide text-slate-500"
             >
-              <i class="fa-solid fa-plus"></i> Cadastrar Gasto
-            </button>
-          </form>
-        </aside>
-      </div>
-    </main>
-
-    <!-- MODAL DE CONFIGURAÇÃO SUPABASE -->
-    <div id="config-modal" class="modal-overlay hidden">
-      <div class="modal-card">
-        <div class="modal-header">
-          <h3>
-            <i
-              class="fa-solid fa-database"
-              style="color: var(--brand-blue)"
-            ></i>
-            Conexão Supabase
-          </h3>
-          <button onclick="closeConfigModal()" class="btn-close">
-            <i class="fa-solid fa-xmark"></i>
-          </button>
-        </div>
-
-        <div style="display: flex; flex-direction: column; gap: 1rem">
-          <p style="font-size: 0.8rem; color: var(--text-muted)">
-            Insira as credenciais do seu projeto Supabase. A URL será
-            higienizada automaticamente para evitar erros de rota.
-          </p>
-
-          <div class="form-group">
-            <label>URL do Projeto Supabase</label>
-            <input
-              type="text"
-              id="supabase-url-input"
-              class="input-control"
-              placeholder="https://xyzxyz.supabase.co"
-            />
+              Maior gasto
+            </p>
+            <div class="mt-1 flex items-baseline gap-2">
+              <p
+                id="largestValue"
+                class="money text-xl font-bold tracking-tight text-slate-950"
+              >
+                R$ 0,00
+              </p>
+            </div>
+            <p id="largestName" class="mt-0.5 truncate text-xs text-slate-400">
+              Nenhum gasto
+            </p>
           </div>
 
-          <div class="form-group">
-            <label>Chave Pública (Anon Key)</label>
-            <input
-              type="password"
-              id="supabase-key-input"
-              class="input-control"
-              placeholder="eyJhbGciOi..."
-            />
+          <div class="px-4 py-3 sm:px-5">
+            <p
+              class="text-[11px] font-semibold uppercase tracking-wide text-slate-500"
+            >
+              Média por gasto
+            </p>
+            <p
+              id="averageValue"
+              class="money mt-1 text-xl font-bold tracking-tight text-slate-950"
+            >
+              R$ 0,00
+            </p>
+            <p class="mt-0.5 text-xs text-slate-400">No período selecionado</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Filters -->
+      <section
+        class="mb-4 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4"
+      >
+        <div class="flex flex-col gap-3">
+          <div
+            class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+          >
+            <div>
+              <h2 class="font-semibold text-slate-950">Período</h2>
+              <p class="text-sm text-slate-500">
+                Altere o período para recalcular os valores instantaneamente.
+              </p>
+            </div>
+            <button
+              id="refreshBtn"
+              type="button"
+              class="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <span id="refreshIcon">↻</span> Atualizar
+            </button>
+          </div>
+
+          <div class="flex flex-wrap gap-2" id="periodFilters">
+            <button
+              data-period="today"
+              class="period-btn rounded-lg bg-slate-950 px-3.5 py-2 text-xs font-semibold text-white"
+            >
+              Hoje
+            </button>
+            <button
+              data-period="week"
+              class="period-btn rounded-lg px-3.5 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100"
+            >
+              Esta semana
+            </button>
+            <button
+              data-period="month"
+              class="period-btn rounded-lg px-3.5 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100"
+            >
+              Este mês
+            </button>
+            <button
+              data-period="year"
+              class="period-btn rounded-lg px-3.5 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100"
+            >
+              Este ano
+            </button>
+            <button
+              data-period="all"
+              class="period-btn rounded-lg px-3.5 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100"
+            >
+              Todos
+            </button>
+            <button
+              data-period="custom"
+              class="period-btn rounded-lg px-3.5 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100"
+            >
+              Personalizado
+            </button>
           </div>
 
           <div
-            style="
-              background: rgba(14, 165, 233, 0.08);
-              border: 1px solid rgba(14, 165, 233, 0.25);
-              padding: 0.85rem;
-              border-radius: var(--radius-sm);
-              font-size: 0.75rem;
-            "
+            id="customRange"
+            class="hidden grid gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4 sm:grid-cols-2"
           >
-            <div
-              style="
-                font-weight: 700;
-                color: var(--brand-blue);
-                margin-bottom: 4px;
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-              "
-            >
-              <span
-                ><i class="fa-solid fa-code"></i> Script SQL para criar Tabela &
-                RLS</span
-              >
-              <button
-                onclick="copySqlScript()"
-                class="btn-pill"
-                style="padding: 2px 8px; font-size: 0.7rem"
-              >
-                <i class="fa-regular fa-copy"></i> Copiar SQL
-              </button>
+            <label class="text-sm font-medium text-slate-700">
+              Data inicial
+              <input
+                id="customStart"
+                type="date"
+                class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+              />
+            </label>
+            <label class="text-sm font-medium text-slate-700">
+              Data final
+              <input
+                id="customEnd"
+                type="date"
+                class="mt-1.5 block w-full rounded-lg border border-slate-300 bg-white px-3 py-2.5 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+              />
+            </label>
+          </div>
+        </div>
+      </section>
+
+      <!-- List -->
+      <section
+        class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"
+      >
+        <div class="border-b border-slate-200 px-4 py-3 sm:px-5">
+          <div
+            class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+          >
+            <div>
+              <h2 class="text-base font-bold text-slate-950">
+                Todos os gastos
+              </h2>
+              <p id="listDescription" class="text-sm text-slate-500">
+                Exibindo os gastos de hoje.
+              </p>
             </div>
-            <p style="color: var(--text-muted); margin-bottom: 4px">
-              Rode no <strong>SQL Editor</strong> do Supabase:
-            </p>
-            <div id="sql-script-text" class="sql-box">
-              CREATE TABLE IF NOT EXISTS gastos ( id UUID DEFAULT
-              gen_random_uuid() PRIMARY KEY, nome TEXT NOT NULL, descricao TEXT,
-              valor NUMERIC(10,2) NOT NULL, data_hora TIMESTAMPTZ NOT NULL,
-              created_at TIMESTAMPTZ DEFAULT now() ); ALTER TABLE gastos ENABLE
-              ROW LEVEL SECURITY; DROP POLICY IF EXISTS "Permitir acesso total
-              publico" ON gastos; CREATE POLICY "Permitir acesso total publico"
-              ON gastos FOR ALL TO anon, authenticated USING (true) WITH CHECK
-              (true);
+            <div class="relative">
+              <input
+                id="searchInput"
+                type="search"
+                placeholder="Buscar gasto..."
+                class="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm outline-none placeholder:text-slate-400 focus:border-indigo-500 focus:bg-white focus:ring-2 focus:ring-indigo-100 sm:w-64"
+              />
             </div>
           </div>
         </div>
 
         <div
-          style="
-            display: flex;
-            justify-content: flex-end;
-            gap: 0.75rem;
-            margin-top: 1.25rem;
-            padding-top: 1rem;
-            border-top: 1px solid var(--border-color);
-          "
+          id="loadingState"
+          class="flex min-h-64 items-center justify-center p-8"
         >
-          <button onclick="closeConfigModal()" class="btn btn-outline">
-            Cancelar
-          </button>
-          <button onclick="saveSupabaseConfig()" class="btn btn-green">
-            <i class="fa-solid fa-floppy-disk"></i> Salvar e Conectar
+          <div class="text-center">
+            <div class="spinner-dark mx-auto"></div>
+            <p class="mt-3 text-sm font-medium text-slate-600">
+              Carregando dados do Supabase...
+            </p>
+          </div>
+        </div>
+
+        <div id="errorState" class="hidden p-6">
+          <div class="rounded-xl border border-red-200 bg-red-50 p-5">
+            <h3 class="font-semibold text-red-900">
+              Não foi possível carregar os gastos
+            </h3>
+            <p
+              id="errorMessage"
+              class="mt-1 whitespace-pre-wrap text-sm text-red-700"
+            ></p>
+            <button
+              id="retryBtn"
+              type="button"
+              class="mt-4 rounded-lg bg-red-700 px-4 py-2 text-sm font-semibold text-white hover:bg-red-800"
+            >
+              Tentar novamente
+            </button>
+          </div>
+        </div>
+
+        <div id="emptyState" class="hidden p-10 text-center">
+          <div
+            class="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-2xl"
+          >
+            R$
+          </div>
+          <h3 class="mt-4 font-semibold text-slate-900">
+            Nenhum gasto encontrado
+          </h3>
+          <p class="mx-auto mt-1 max-w-md text-sm text-slate-500">
+            Não há registros correspondentes ao período e à busca selecionados.
+          </p>
+          <button
+            id="emptyNewBtn"
+            type="button"
+            class="mt-5 rounded-xl bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white hover:bg-slate-800"
+          >
+            Adicionar gasto
           </button>
         </div>
-      </div>
-    </div>
 
-    <!-- MODAL DE CONFIRMAÇÃO DE EXCLUSÃO (Garante conformidade: sem alert/confirm) -->
-    <div id="delete-modal" class="modal-overlay hidden">
-      <div class="modal-card" style="max-width: 400px; text-align: center">
+        <div id="tableWrap" class="hidden overflow-x-auto">
+          <table class="w-full min-w-[850px] text-left">
+            <thead class="border-b border-slate-200 bg-slate-50">
+              <tr
+                class="text-xs font-semibold uppercase tracking-wider text-slate-500"
+              >
+                <th class="px-6 py-3">Gasto</th>
+                <th class="px-6 py-3">Descrição</th>
+                <th class="px-6 py-3">Data</th>
+                <th class="px-6 py-3">Hora</th>
+                <th class="px-6 py-3 text-right">Valor</th>
+                <th class="px-6 py-3 text-right">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="expenseBody" class="divide-y divide-slate-100"></tbody>
+          </table>
+        </div>
+
+        <div class="border-t border-slate-200 bg-slate-50 px-4 py-4 sm:px-5">
+          <button
+            id="newExpenseBtn"
+            type="button"
+            class="mx-auto flex w-full max-w-sm items-center justify-center gap-2 rounded-xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800 focus:outline-none focus:ring-4 focus:ring-slate-200"
+          >
+            <span class="text-lg leading-none">+</span> Novo gasto
+          </button>
+        </div>
+      </section>
+    </main>
+
+    <!-- Modal -->
+    <div
+      id="modal"
+      class="modal-backdrop fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/50 p-4"
+    >
+      <div class="fade-in w-full max-w-lg rounded-2xl bg-white shadow-2xl">
         <div
-          style="
-            font-size: 2.5rem;
-            color: var(--expense-red);
-            margin-bottom: 0.75rem;
-          "
+          class="flex items-start justify-between border-b border-slate-200 p-5 sm:p-6"
         >
-          <i class="fa-solid fa-triangle-exclamation"></i>
-        </div>
-        <h3
-          style="
-            font-size: 1.1rem;
-            margin-bottom: 0.5rem;
-            color: var(--text-main);
-          "
-        >
-          Confirmar Exclusão
-        </h3>
-        <p
-          style="
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            margin-bottom: 1.5rem;
-          "
-        >
-          Tem certeza que deseja excluir esta despesa? Esta ação não poderá ser
-          desfeita.
-        </p>
-        <div style="display: flex; gap: 0.75rem; justify-content: center">
+          <div>
+            <h2 id="modalTitle" class="text-xl font-bold text-slate-950">
+              Novo gasto
+            </h2>
+            <p class="mt-1 text-sm text-slate-500">
+              Os dados serão enviados diretamente ao Supabase.
+            </p>
+          </div>
           <button
-            onclick="closeDeleteModal()"
-            class="btn btn-outline"
-            style="flex: 1"
+            id="closeModalBtn"
+            type="button"
+            aria-label="Fechar"
+            class="rounded-lg p-2 text-xl leading-none text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+          >
+            ×
+          </button>
+        </div>
+
+        <form id="expenseForm" class="space-y-4 p-5 sm:p-6" novalidate>
+          <input id="expenseId" type="hidden" />
+
+          <label class="block">
+            <span class="text-sm font-semibold text-slate-700"
+              >Nome do gasto <span class="text-red-600">*</span></span
+            >
+            <input
+              id="name"
+              type="text"
+              maxlength="150"
+              required
+              placeholder="Ex.: Almoço, Gasolina"
+              class="mt-1.5 block w-full rounded-xl border border-slate-300 px-3.5 py-3 text-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
+            />
+            <span
+              data-error="name"
+              class="mt-1 hidden text-xs font-medium text-red-600"
+            ></span>
+          </label>
+
+          <label class="block">
+            <span class="text-sm font-semibold text-slate-700">Descrição</span>
+            <textarea
+              id="description"
+              maxlength="1000"
+              rows="3"
+              placeholder="Detalhes ou observações opcionais"
+              class="mt-1.5 block w-full resize-none rounded-xl border border-slate-300 px-3.5 py-3 text-sm outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
+            ></textarea>
+          </label>
+
+          <div class="grid gap-4 sm:grid-cols-2">
+            <label class="block">
+              <span class="text-sm font-semibold text-slate-700"
+                >Data <span class="text-red-600">*</span></span
+              >
+              <input
+                id="date"
+                type="date"
+                required
+                class="mt-1.5 block w-full rounded-xl border border-slate-300 px-3.5 py-3 text-sm outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
+              />
+              <span
+                data-error="date"
+                class="mt-1 hidden text-xs font-medium text-red-600"
+              ></span>
+            </label>
+            <label class="block">
+              <span class="text-sm font-semibold text-slate-700"
+                >Hora <span class="text-red-600">*</span></span
+              >
+              <input
+                id="time"
+                type="time"
+                required
+                class="mt-1.5 block w-full rounded-xl border border-slate-300 px-3.5 py-3 text-sm outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
+              />
+              <span
+                data-error="time"
+                class="mt-1 hidden text-xs font-medium text-red-600"
+              ></span>
+            </label>
+          </div>
+
+          <label class="block">
+            <span class="text-sm font-semibold text-slate-700"
+              >Valor do gasto (R$) <span class="text-red-600">*</span></span
+            >
+            <div class="relative mt-1.5">
+              <span
+                class="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-sm font-semibold text-slate-400"
+                >R$</span
+              >
+              <input
+                id="amount"
+                type="number"
+                min="0.01"
+                step="0.01"
+                inputmode="decimal"
+                required
+                placeholder="0,00"
+                class="block w-full rounded-xl border border-slate-300 py-3 pl-11 pr-3.5 text-sm outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100"
+              />
+            </div>
+            <span
+              data-error="amount"
+              class="mt-1 hidden text-xs font-medium text-red-600"
+            ></span>
+          </label>
+
+          <div
+            id="formError"
+            class="hidden rounded-xl border border-red-200 bg-red-50 p-3 text-sm font-medium text-red-700"
+          ></div>
+
+          <div
+            class="flex flex-col-reverse gap-2 border-t border-slate-100 pt-4 sm:flex-row sm:justify-end"
+          >
+            <button
+              id="cancelBtn"
+              type="button"
+              class="rounded-xl border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+            >
+              Cancelar
+            </button>
+            <button
+              id="saveBtn"
+              type="submit"
+              class="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-950 px-5 py-2.5 text-sm font-semibold text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <span id="saveSpinner" class="spinner hidden"></span>
+              <span id="saveText">Salvar gasto</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Delete confirmation -->
+    <div
+      id="deleteModal"
+      class="modal-backdrop fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/50 p-4"
+    >
+      <div class="fade-in w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
+        <div
+          class="flex h-12 w-12 items-center justify-center rounded-xl bg-red-100 text-red-700"
+        >
+          !
+        </div>
+        <h2 class="mt-4 text-xl font-bold text-slate-950">Excluir gasto?</h2>
+        <p id="deleteText" class="mt-2 text-sm leading-6 text-slate-500">
+          Essa ação removerá o registro do Supabase e não pode ser desfeita.
+        </p>
+        <div
+          class="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end"
+        >
+          <button
+            id="deleteCancelBtn"
+            type="button"
+            class="rounded-xl border border-slate-200 px-5 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
           >
             Cancelar
           </button>
           <button
-            onclick="executeDeleteGasto()"
-            class="btn btn-danger"
-            style="flex: 1"
+            id="deleteConfirmBtn"
+            type="button"
+            class="inline-flex items-center justify-center gap-2 rounded-xl bg-red-700 px-5 py-2.5 text-sm font-semibold text-white hover:bg-red-800 disabled:opacity-60"
           >
-            <i class="fa-solid fa-trash-can"></i> Excluir
+            <span id="deleteSpinner" class="spinner hidden"></span>
+            Excluir
           </button>
         </div>
       </div>
     </div>
-
-    <footer>
-      <p>
-        MeuControle Financeiro &bull; Supabase Backend & Somatório de Filtros em
-        Tempo Real
-      </p>
-    </footer>
 
     <script>
+      // ============================================================
+      // SUPABASE — PREENCHA ESTAS DUAS CONSTANTES ANTES DE PUBLICAR
+      // ============================================================
+      const SUPABASE_URL = "https://qwuswlafzdljetajplem.supabase.co";
+      const SUPABASE_ANON_KEY =
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF3dXN3bGFmemRsamV0YWpwbGVtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAwODI3MDMsImV4cCI6MjEwNTY1ODcwM30.VEtn1xhlCnFHQMZPm2w6zQ97Eb2ysURSuqcEeAtbW8w";
+
+      // Nome da tabela criada pelo SQL fornecido ao final da resposta.
+      const TABLE_NAME = "gastos";
+
+      const isConfigured =
+        Boolean(SUPABASE_URL) &&
+        Boolean(SUPABASE_ANON_KEY) &&
+        SUPABASE_URL.startsWith("https://") &&
+        !SUPABASE_URL.includes("/rest/v1/");
+
       let supabaseClient = null;
-      let allGastos = [];
-      let currentPeriodFilter = "tudo";
-      let pendingDeleteId = null;
-      let isDemoMode = false;
+      let expenses = [];
+      let selectedPeriod = "all";
+      let editingId = null;
+      let deletingId = null;
+      let searchTerm = "";
 
-      // Dados de exemplo para o modo Demo
-      function getSampleGastos() {
-        const now = new Date();
+      const $ = (id) => document.getElementById(id);
 
-        // Hoje
-        const hoje1 = new Date(now);
-        hoje1.setHours(10, 30, 0);
-        const hoje2 = new Date(now);
-        hoje2.setHours(14, 15, 0);
+      const els = {
+        connectionBanner: $("connectionBanner"),
+        totalValue: $("totalValue"),
+        totalCount: $("totalCount"),
+        periodLabel: $("periodLabel"),
+        largestValue: $("largestValue"),
+        largestName: $("largestName"),
+        averageValue: $("averageValue"),
+        periodFilters: $("periodFilters"),
+        customRange: $("customRange"),
+        customStart: $("customStart"),
+        customEnd: $("customEnd"),
+        listDescription: $("listDescription"),
+        searchInput: $("searchInput"),
+        loadingState: $("loadingState"),
+        errorState: $("errorState"),
+        errorMessage: $("errorMessage"),
+        emptyState: $("emptyState"),
+        tableWrap: $("tableWrap"),
+        expenseBody: $("expenseBody"),
+        modal: $("modal"),
+        deleteModal: $("deleteModal"),
+        form: $("expenseForm"),
+        formError: $("formError"),
+      };
 
-        // Esta semana (3 dias atrás)
-        const semana1 = new Date(now);
-        semana1.setDate(now.getDate() - 2);
-        semana1.setHours(18, 0, 0);
-
-        // Este mês (10 dias atrás)
-        const mes1 = new Date(now);
-        mes1.setDate(now.getDate() - 10);
-        mes1.setHours(12, 0, 0);
-
-        // Mês passado (40 dias atrás)
-        const antigo1 = new Date(now);
-        antigo1.setDate(now.getDate() - 40);
-        antigo1.setHours(9, 0, 0);
-
-        return [
-          {
-            id: "demo-1",
-            nome: "Almoço Restaurante",
-            valor: 48.5,
-            data_hora: hoje1.toISOString(),
-            descricao: "Almoço de trabalho",
-          },
-          {
-            id: "demo-2",
-            nome: "Supermercado",
-            valor: 312.9,
-            data_hora: hoje2.toISOString(),
-            descricao: "Compras semanais",
-          },
-          {
-            id: "demo-3",
-            nome: "Gasolina",
-            valor: 220.0,
-            data_hora: semana1.toISOString(),
-            descricao: "Abastecimento carro",
-          },
-          {
-            id: "demo-4",
-            nome: "Conta de Luz",
-            valor: 185.4,
-            data_hora: mes1.toISOString(),
-            descricao: "Pagamento mensal",
-          },
-          {
-            id: "demo-5",
-            nome: "Assinatura Streaming",
-            valor: 55.9,
-            data_hora: antigo1.toISOString(),
-            descricao: "Entretenimento",
-          },
-        ];
-      }
-
-      function formatCurrency(amount) {
+      function formatBRL(value) {
         return new Intl.NumberFormat("pt-BR", {
           style: "currency",
           currency: "BRL",
-        }).format(amount || 0);
+        }).format(Number(value) || 0);
       }
 
-      function formatDateTime(isoString) {
-        if (!isoString) return "-";
-        const date = new Date(isoString);
-        return date.toLocaleString("pt-BR", {
-          day: "2-digit",
-          month: "2-digit",
-          year: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-        });
+      function escapeHTML(value) {
+        return String(value ?? "")
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#039;");
       }
 
-      function sanitizeSupabaseUrl(rawUrl) {
-        if (!rawUrl) return "";
-        let url = rawUrl.trim();
-
-        if (!url.startsWith("http://") && !url.startsWith("https://")) {
-          url = "https://" + url;
-        }
-
-        // Limpar barras no final e sufixos colados sem querer
-        url = url.replace(/\/+$|\/rest\/v1\/?$/i, "");
-        return url;
+      function localDateISO(date = new Date()) {
+        const y = date.getFullYear();
+        const m = String(date.getMonth() + 1).padStart(2, "0");
+        const d = String(date.getDate()).padStart(2, "0");
+        return `${y}-${m}-${d}`;
       }
 
-      function showToast(message, type = "info", duration = 4000) {
-        const container = document.getElementById("toast-container");
-        const toast = document.createElement("div");
-        toast.className = `toast ${type}`;
-
-        const iconClass =
-          type === "error"
-            ? "fa-circle-exclamation"
-            : type === "success"
-              ? "fa-circle-check"
-              : type === "warning"
-                ? "fa-triangle-exclamation"
-                : "fa-circle-info";
-
-        const title =
-          type === "error"
-            ? "Atenção / Erro"
-            : type === "success"
-              ? "Sucesso"
-              : type === "warning"
-                ? "Aviso"
-                : "Informativo";
-
-        toast.innerHTML = `
-        <i class="fa-solid ${iconClass}"></i>
-        <div class="toast-content">
-          <div class="toast-title">${title}</div>
-          <div>${message}</div>
-        </div>
-      `;
-
-        container.appendChild(toast);
-
-        setTimeout(() => {
-          toast.style.opacity = "0";
-          toast.style.transform = "translateY(10px)";
-          toast.style.transition = "all 0.3s ease";
-          setTimeout(() => toast.remove(), 300);
-        }, duration);
+      function parseISODateOnly(value) {
+        const [y, m, d] = String(value).split("-").map(Number);
+        return new Date(y, m - 1, d);
       }
 
-      function updateStatusIndicator(state, text) {
-        const badge = document.getElementById("connection-status");
-        const label = document.getElementById("status-text");
-
-        badge.className = `status-badge ${state}`;
-        label.textContent = text;
+      function formatDateBR(value) {
+        if (!value) return "—";
+        const [y, m, d] = String(value).slice(0, 10).split("-");
+        return `${d}/${m}/${y}`;
       }
 
-      // Funções utilitárias para comparação de datas precisas
-      function isSameDay(d1, d2) {
-        return (
-          d1.getFullYear() === d2.getFullYear() &&
-          d1.getMonth() === d2.getMonth() &&
-          d1.getDate() === d2.getDate()
-        );
+      function normalizeTime(value) {
+        if (!value) return "—";
+        return String(value).slice(0, 5);
       }
 
-      function isInThisWeek(date, now = new Date()) {
-        // Segunda-feira como primeiro dia da semana
-        const currentDay = now.getDay(); // 0: Dom, 1: Seg, ... 6: Sáb
-        const diffToMonday = currentDay === 0 ? -6 : 1 - currentDay;
-
-        const monday = new Date(
-          now.getFullYear(),
-          now.getMonth(),
-          now.getDate() + diffToMonday,
-          0,
-          0,
-          0,
-          0,
-        );
-        const sunday = new Date(monday);
-        sunday.setDate(monday.getDate() + 6);
-        sunday.setHours(23, 59, 59, 999);
-
-        return date >= monday && date <= sunday;
-      }
-
-      function isInThisMonth(date, now = new Date()) {
-        return (
-          date.getFullYear() === now.getFullYear() &&
-          date.getMonth() === now.getMonth()
-        );
-      }
-
-      function setPeriodFilter(period) {
-        currentPeriodFilter = period;
-
-        // Atualizar destaque dos botões
-        document
-          .querySelectorAll(".filter-pills .btn-pill")
-          .forEach((btn) => btn.classList.remove("active"));
-        const activeBtn = document.getElementById(`filter-${period}`);
-        if (activeBtn) activeBtn.classList.add("active");
-
-        // Atualizar subtítulo explicativo no card
-        const subtitleMap = {
-          tudo: "Soma de todos os gastos cadastrados",
-          hoje: "Soma dos gastos registrados hoje",
-          semana: "Soma dos gastos nesta semana (Seg-Dom)",
-          mes: "Soma dos gastos no mês corrente",
-        };
-        document.getElementById("stat-subtitle").textContent =
-          subtitleMap[period] || "Soma do período selecionado";
-
-        // RECALCULAR IMEDIATAMENTE A SOMA E EXIBIÇÃO
-        applyFiltersAndSort();
-      }
-
-      function applyFiltersAndSort() {
-        const searchTerm = (
-          document.getElementById("input-search")?.value || ""
-        )
-          .toLowerCase()
-          .trim();
+      function getPeriodRange() {
         const now = new Date();
+        let start = null;
+        let end = null;
 
-        // 1. FILTRAR REGISTROS
-        let filtered = allGastos.filter((g) => {
-          if (!g.data_hora) return false;
-          const itemDate = new Date(g.data_hora);
+        if (selectedPeriod === "today") {
+          start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+          end = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        } else if (selectedPeriod === "week") {
+          // Semana iniciando na segunda-feira.
+          const day = now.getDay();
+          const diff = day === 0 ? -6 : 1 - day;
+          start = new Date(
+            now.getFullYear(),
+            now.getMonth(),
+            now.getDate() + diff,
+          );
+          end = new Date(
+            start.getFullYear(),
+            start.getMonth(),
+            start.getDate() + 6,
+          );
+        } else if (selectedPeriod === "month") {
+          start = new Date(now.getFullYear(), now.getMonth(), 1);
+          end = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+        } else if (selectedPeriod === "year") {
+          start = new Date(now.getFullYear(), 0, 1);
+          end = new Date(now.getFullYear(), 11, 31);
+        } else if (selectedPeriod === "custom") {
+          if (els.customStart.value)
+            start = parseISODateOnly(els.customStart.value);
+          if (els.customEnd.value) end = parseISODateOnly(els.customEnd.value);
+        }
 
-          // Filtro por Período
-          if (currentPeriodFilter === "hoje") {
-            if (!isSameDay(itemDate, now)) return false;
-          } else if (currentPeriodFilter === "semana") {
-            if (!isInThisWeek(itemDate, now)) return false;
-          } else if (currentPeriodFilter === "mes") {
-            if (!isInThisMonth(itemDate, now)) return false;
-          }
+        return {
+          start: start ? localDateISO(start) : null,
+          end: end ? localDateISO(end) : null,
+        };
+      }
 
-          // Filtro por Texto (Nome ou Descrição)
-          if (searchTerm) {
-            const matchName = (g.nome || "").toLowerCase().includes(searchTerm);
-            const matchDesc = (g.descricao || "")
-              .toLowerCase()
-              .includes(searchTerm);
-            if (!matchName && !matchDesc) return false;
-          }
+      function getPeriodLabel() {
+        const labels = {
+          today: "Hoje",
+          week: "Esta semana",
+          month: "Este mês",
+          year: "Este ano",
+          all: "Todos os gastos",
+          custom: "Período personalizado",
+        };
+        if (
+          selectedPeriod === "custom" &&
+          els.customStart.value &&
+          els.customEnd.value
+        ) {
+          return `${formatDateBR(els.customStart.value)} a ${formatDateBR(els.customEnd.value)}`;
+        }
+        return labels[selectedPeriod];
+      }
 
-          return true;
+      function getFilteredExpenses() {
+        const { start, end } = getPeriodRange();
+
+        return expenses
+          .filter((item) => {
+            const date = String(item.data || "").slice(0, 10);
+            const inRange = (!start || date >= start) && (!end || date <= end);
+            const query = searchTerm.trim().toLowerCase();
+            const inSearch =
+              !query ||
+              String(item.nome || "")
+                .toLowerCase()
+                .includes(query) ||
+              String(item.descricao || "")
+                .toLowerCase()
+                .includes(query);
+            return inRange && inSearch;
+          })
+          .sort((a, b) => {
+            const ad = `${a.data || ""}T${a.hora || ""}`;
+            const bd = `${b.data || ""}T${b.hora || ""}`;
+            return bd.localeCompare(ad);
+          });
+      }
+
+      function updateSummary() {
+        const { start, end } = getPeriodRange();
+        const periodItems = expenses.filter((item) => {
+          const date = String(item.data || "").slice(0, 10);
+          return (!start || date >= start) && (!end || date <= end);
         });
 
-        // 2. RECALCULAR SOMA E MÉTRICAS DO PERÍODO
-        const total = filtered.reduce(
-          (acc, curr) => acc + (parseFloat(curr.valor) || 0),
+        const total = periodItems.reduce(
+          (sum, item) => sum + Number(item.valor || 0),
           0,
         );
-        const count = filtered.length;
-        const max =
-          count > 0
-            ? Math.max(...filtered.map((g) => parseFloat(g.valor) || 0))
-            : 0;
+        const largest = periodItems.reduce(
+          (max, item) =>
+            Number(item.valor || 0) > Number(max?.valor || 0) ? item : max,
+          null,
+        );
+        const average = periodItems.length ? total / periodItems.length : 0;
 
-        // 3. ATUALIZAR OS CARDS DE MÉTRICA NO TOPO DA TELA
-        document.getElementById("stat-total").textContent =
-          formatCurrency(total);
-        document.getElementById("stat-count").textContent = count;
-        document.getElementById("stat-max").textContent = formatCurrency(max);
-
-        // 4. ORDENAR REGISTROS
-        const sortValue = document.getElementById("select-sort").value;
-        filtered.sort((a, b) => {
-          if (sortValue === "recente")
-            return new Date(b.data_hora) - new Date(a.data_hora);
-          if (sortValue === "antigo")
-            return new Date(a.data_hora) - new Date(b.data_hora);
-          if (sortValue === "maior-valor")
-            return parseFloat(b.valor) - parseFloat(a.valor);
-          if (sortValue === "menor-valor")
-            return parseFloat(a.valor) - parseFloat(b.valor);
-          return 0;
-        });
-
-        // 5. RENDERIZAR TABELA
-        renderTable(filtered);
+        els.periodLabel.textContent = getPeriodLabel();
+        els.totalValue.textContent = formatBRL(total);
+        els.totalCount.textContent = `${periodItems.length} ${periodItems.length === 1 ? "gasto" : "gastos"}`;
+        els.largestValue.textContent = formatBRL(largest?.valor || 0);
+        els.largestName.textContent = largest?.nome || "Nenhum gasto";
+        els.averageValue.textContent = formatBRL(average);
       }
 
-      function renderTable(gastos) {
-        const tableBody = document.getElementById("tabela-gastos");
-        tableBody.innerHTML = "";
+      function updateListDescription(count) {
+        const label = getPeriodLabel();
+        els.listDescription.textContent = `${count} ${count === 1 ? "registro" : "registros"} encontrado${count === 1 ? "" : "s"} em ${label.toLowerCase()}.`;
+      }
 
-        if (gastos.length === 0) {
-          showEmptyState(true);
+      function render() {
+        updateSummary();
+
+        const filtered = getFilteredExpenses();
+        updateListDescription(filtered.length);
+
+        els.loadingState.classList.add("hidden");
+        els.errorState.classList.add("hidden");
+
+        if (!filtered.length) {
+          els.tableWrap.classList.add("hidden");
+          els.emptyState.classList.remove("hidden");
           return;
         }
 
-        showEmptyState(false);
+        els.emptyState.classList.add("hidden");
+        els.tableWrap.classList.remove("hidden");
 
-        gastos.forEach((gasto) => {
-          const tr = document.createElement("tr");
-          tr.innerHTML = `
-          <td>
-            <div class="expense-name">${escapeHtml(gasto.nome)}</div>
-            ${gasto.descricao ? `<div class="expense-desc">${escapeHtml(gasto.descricao)}</div>` : ""}
-          </td>
-          <td class="expense-date">${formatDateTime(gasto.data_hora)}</td>
-          <td class="expense-amount">${formatCurrency(gasto.valor)}</td>
-          <td style="text-align: right;">
-            <button onclick="promptDeleteGasto('${gasto.id}')" class="btn-danger-ghost" title="Excluir despesa">
-              <i class="fa-solid fa-trash-can"></i>
-            </button>
-          </td>
-        `;
-          tableBody.appendChild(tr);
-        });
+        els.expenseBody.innerHTML = filtered
+          .map(
+            (item) => `
+      <tr class="group hover:bg-slate-50">
+        <td class="px-6 py-4 align-top">
+          <div class="font-semibold text-slate-900">${escapeHTML(item.nome)}</div>
+        </td>
+        <td class="max-w-xs px-6 py-4 align-top">
+          <div class="truncate text-sm text-slate-500" title="${escapeHTML(item.descricao || "")}">
+            ${escapeHTML(item.descricao || "Sem descrição")}
+          </div>
+        </td>
+        <td class="whitespace-nowrap px-6 py-4 align-top text-sm text-slate-600">${formatDateBR(item.data)}</td>
+        <td class="whitespace-nowrap px-6 py-4 align-top text-sm text-slate-600">${normalizeTime(item.hora)}</td>
+        <td class="money whitespace-nowrap px-6 py-4 text-right align-top font-semibold text-slate-900">${formatBRL(item.valor)}</td>
+        <td class="whitespace-nowrap px-6 py-4 text-right align-top">
+          <button type="button" data-edit="${escapeHTML(item.id)}" class="mr-1 rounded-lg px-3 py-2 text-xs font-semibold text-indigo-700 hover:bg-indigo-50">Editar</button>
+          <button type="button" data-delete="${escapeHTML(item.id)}" class="rounded-lg px-3 py-2 text-xs font-semibold text-red-700 hover:bg-red-50">Excluir</button>
+        </td>
+      </tr>
+    `,
+          )
+          .join("");
       }
 
-      function showEmptyState(
-        show,
-        title = "Nenhum gasto encontrado",
-        msg = "Adicione um novo gasto no formulário ao lado ou altere os filtros.",
-      ) {
-        const emptyEl = document.getElementById("empty-state");
-        document.getElementById("empty-title").textContent = title;
-        document.getElementById("empty-msg").textContent = msg;
+      function setLoading(loading) {
+        els.loadingState.classList.toggle("hidden", !loading);
+        if (loading) {
+          els.errorState.classList.add("hidden");
+          els.emptyState.classList.add("hidden");
+          els.tableWrap.classList.add("hidden");
+        }
+      }
 
-        if (show) {
-          emptyEl.classList.remove("hidden");
+      function showError(message) {
+        els.loadingState.classList.add("hidden");
+        els.emptyState.classList.add("hidden");
+        els.tableWrap.classList.add("hidden");
+        els.errorState.classList.remove("hidden");
+        els.errorMessage.textContent = message;
+      }
+
+      function showToast(message, type = "success") {
+        const node = document.createElement("div");
+        const styles =
+          type === "error"
+            ? "border-red-200 bg-red-50 text-red-900"
+            : "border-emerald-200 bg-emerald-50 text-emerald-900";
+        node.className = `fade-in rounded-xl border p-4 text-sm font-medium shadow-lg ${styles}`;
+        node.textContent = message;
+        $("toastRoot").appendChild(node);
+        setTimeout(() => node.remove(), 3500);
+      }
+
+      function setConnection(connected, message = "") {
+        const banner = els.connectionBanner;
+        if (connected) {
+          banner.className =
+            "mb-6 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-emerald-900";
+          banner.innerHTML = `
+        <div class="flex items-start gap-3">
+          <div class="mt-0.5 h-2.5 w-2.5 shrink-0 rounded-full bg-emerald-500"></div>
+          <div>
+            <p class="font-semibold">Supabase conectado</p>
+            <p class="mt-1 text-sm">A aplicação está usando o banco remoto como fonte de dados.</p>
+          </div>
+        </div>`;
         } else {
-          emptyEl.classList.add("hidden");
+          banner.className =
+            "mb-6 rounded-2xl border border-red-200 bg-red-50 p-4 text-red-900";
+          banner.innerHTML = `
+        <div class="flex items-start gap-3">
+          <div class="mt-0.5 h-2.5 w-2.5 shrink-0 rounded-full bg-red-500"></div>
+          <div>
+            <p class="font-semibold">Supabase não configurado</p>
+            <p class="mt-1 text-sm">${escapeHTML(message || "Preencha SUPABASE_URL e SUPABASE_ANON_KEY no início do script.")}</p>
+          </div>
+        </div>`;
         }
       }
 
-      function escapeHtml(str) {
-        if (!str) return "";
-        return str.replace(/[&<>"']/g, function (m) {
-          return {
-            "&": "&amp;",
-            "<": "&lt;",
-            ">": "&gt;",
-            '"': "&quot;",
-            "'": "&#039;",
-          }[m];
-        });
-      }
-
-      function initSupabase() {
-        const rawUrl = localStorage.getItem("supabase_url") || "";
-        const rawKey = localStorage.getItem("supabase_key") || "";
-
-        if (!rawUrl || !rawKey) {
-          if (!isDemoMode) {
-            updateStatusIndicator("warning", "Não Configurado");
-          }
-          return false;
-        }
-
-        const cleanUrl = sanitizeSupabaseUrl(rawUrl);
-
-        try {
-          new URL(cleanUrl);
-          supabaseClient = window.supabase.createClient(
-            cleanUrl,
-            rawKey.trim(),
-          );
-          return true;
-        } catch (err) {
-          console.error("Erro ao inicializar Supabase:", err);
-          updateStatusIndicator("disconnected", "URL Inválida");
-          showToast(
-            "URL do Supabase com formato inválido. Ajuste nas configurações.",
-            "error",
-          );
-          return false;
-        }
-      }
-
-      async function fetchGastos() {
-        const loadingEl = document.getElementById("loading-state");
-        const emptyEl = document.getElementById("empty-state");
-        const tableBody = document.getElementById("tabela-gastos");
-
-        loadingEl.classList.remove("hidden");
-        emptyEl.classList.add("hidden");
-        tableBody.innerHTML = "";
-
-        if (isDemoMode) {
-          // Modo de demonstração local
-          updateStatusIndicator("demo", "Modo Demonstração");
-          const storedDemo = localStorage.getItem("demo_gastos");
-          allGastos = storedDemo ? JSON.parse(storedDemo) : getSampleGastos();
-          if (!storedDemo) {
-            localStorage.setItem("demo_gastos", JSON.stringify(allGastos));
-          }
-          loadingEl.classList.add("hidden");
-          applyFiltersAndSort();
-          return;
-        }
-
-        if (!supabaseClient && !initSupabase()) {
-          loadingEl.classList.add("hidden");
-          // Carrega sample mode automaticamente para visualização inicial
-          toggleDemoMode(true);
-          showToast(
-            "Ativado Modo Demo automaticamente. Configure o Supabase no botão do topo quando desejar.",
-            "info",
-            6000,
+      async function loadExpenses() {
+        if (!isConfigured) {
+          setConnection(false);
+          showError(
+            "Preencha as constantes SUPABASE_URL e SUPABASE_ANON_KEY no início deste arquivo. Depois, execute o SQL fornecido para criar a tabela e as políticas.",
           );
           return;
         }
 
+        setLoading(true);
         try {
           const { data, error } = await supabaseClient
-            .from("gastos")
-            .select("*");
+            .from(TABLE_NAME)
+            .select("id,nome,descricao,valor,data_hora,created_at")
+            .order("data_hora", { ascending: false });
 
-          if (error) {
-            console.error("Erro de consulta no Supabase:", error);
-            let errorMsg = error.message;
+          if (error) throw error;
 
-            if (error.code === "42P01" || errorMsg.includes("does not exist")) {
-              errorMsg =
-                'A tabela "gastos" não existe no Supabase. Copie e execute o SQL nas Configurações.';
-            } else if (
-              error.code === "42501" ||
-              errorMsg.includes("security") ||
-              errorMsg.includes("policy")
-            ) {
-              errorMsg =
-                "Acesso bloqueado por RLS. Abra as Configurações e execute o SQL de permissão.";
-            } else if (errorMsg.includes("Failed to fetch")) {
-              errorMsg =
-                "Falha de conexão com o Supabase. Verifique a URL e sua conexão.";
-            }
+          // Sua tabela usa uma única coluna "data_hora".
+          // O restante da aplicação trabalha com data e hora separadas,
+          // então fazemos essa conversão apenas em memória.
+          expenses = (Array.isArray(data) ? data : []).map((item) => {
+            const raw = String(item.data_hora || "").replace(" ", "T");
+            const [datePart = "", timePart = ""] = raw.split("T");
 
-            updateStatusIndicator("disconnected", "Erro na Tabela/RLS");
-            showToast(`Erro Supabase: ${errorMsg}`, "error", 8000);
-            showEmptyState(true, "Erro ao Carregar Dados", errorMsg);
-            return;
-          }
+            return {
+              ...item,
+              data: datePart.slice(0, 10),
+              hora: timePart.slice(0, 5),
+            };
+          });
 
-          updateStatusIndicator("connected", "Conectado");
-          allGastos = data || [];
-          applyFiltersAndSort();
-        } catch (err) {
-          console.error("Erro inesperado:", err);
-          updateStatusIndicator("disconnected", "Erro de Conexão");
-          showToast(`Falha de comunicação: ${err.message}`, "error");
-          showEmptyState(
-            true,
-            "Erro Inesperado",
-            "Não foi possível comunicar com o Supabase.",
+          setConnection(true);
+          render();
+        } catch (error) {
+          const detail = error?.message || String(error);
+          showError(
+            `Supabase retornou um erro:\n${detail}\n\nVerifique se a tabela "${TABLE_NAME}" existe e se as políticas RLS permitem SELECT.`,
           );
-        } finally {
-          loadingEl.classList.add("hidden");
+          setConnection(false, detail);
         }
       }
 
-      async function handleFormSubmit(event) {
-        event.preventDefault();
+      function clearValidation() {
+        document.querySelectorAll("[data-error]").forEach((el) => {
+          el.textContent = "";
+          el.classList.add("hidden");
+        });
+        els.formError.classList.add("hidden");
+        els.formError.textContent = "";
+      }
 
-        const nome = document.getElementById("input-nome").value.trim();
-        const valor = parseFloat(document.getElementById("input-valor").value);
-        const dataHora = document.getElementById("input-data").value;
-        const descricao = document
-          .getElementById("input-descricao")
-          .value.trim();
+      function setFieldError(field, message) {
+        const el = document.querySelector(`[data-error="${field}"]`);
+        if (el) {
+          el.textContent = message;
+          el.classList.remove("hidden");
+        }
+      }
 
-        if (!nome || isNaN(valor) || valor <= 0 || !dataHora) {
-          showToast(
-            "Preencha os campos obrigatórios com valores válidos.",
-            "error",
-          );
-          return;
+      function validateForm() {
+        clearValidation();
+        const name = $("name").value.trim();
+        const date = $("date").value;
+        const time = $("time").value;
+        const amount = Number($("amount").value);
+        let valid = true;
+
+        if (!name) {
+          setFieldError("name", "Informe o nome do gasto.");
+          valid = false;
+        }
+        if (!date) {
+          setFieldError("date", "Informe a data.");
+          valid = false;
+        }
+        if (!time) {
+          setFieldError("time", "Informe a hora.");
+          valid = false;
+        }
+        if (!Number.isFinite(amount) || amount <= 0) {
+          setFieldError("amount", "Informe um valor maior que R$ 0,00.");
+          valid = false;
         }
 
-        const btnSubmit = document.getElementById("btn-submit");
-        btnSubmit.disabled = true;
-        btnSubmit.innerHTML =
-          '<i class="fa-solid fa-spinner fa-spin"></i> Salvando...';
+        if (!valid) {
+          els.formError.textContent =
+            "Revise os campos destacados antes de salvar.";
+          els.formError.classList.remove("hidden");
+        }
+        return valid;
+      }
+
+      function openModal(item = null) {
+        editingId = item?.id || null;
+        clearValidation();
+
+        $("expenseId").value = item?.id || "";
+        $("name").value = item?.nome || "";
+        $("description").value = item?.descricao || "";
+        $("date").value = item?.data
+          ? String(item.data).slice(0, 10)
+          : localDateISO();
+        $("time").value = item?.hora
+          ? String(item.hora).slice(0, 5)
+          : new Date().toTimeString().slice(0, 5);
+        $("amount").value = item?.valor ?? "";
+
+        $("modalTitle").textContent = editingId ? "Editar gasto" : "Novo gasto";
+        $("saveText").textContent = editingId
+          ? "Salvar alterações"
+          : "Salvar gasto";
+        els.modal.classList.remove("hidden");
+        els.modal.classList.add("flex");
+        setTimeout(() => $("name").focus(), 50);
+      }
+
+      function closeModal() {
+        if ($("saveBtn").disabled) return;
+        els.modal.classList.add("hidden");
+        els.modal.classList.remove("flex");
+        editingId = null;
+      }
+
+      async function saveExpense(event) {
+        event.preventDefault();
+        if (!validateForm() || !supabaseClient) return;
 
         const payload = {
-          nome,
-          valor,
-          data_hora: new Date(dataHora).toISOString(),
-          descricao: descricao || null,
+          nome: $("name").value.trim(),
+          descricao: $("description").value.trim() || null,
+          data_hora: `${$("date").value}T${$("time").value}:00`,
+          valor: Number($("amount").value).toFixed(2),
         };
 
+        $("saveBtn").disabled = true;
+        $("saveSpinner").classList.remove("hidden");
+
         try {
-          if (isDemoMode) {
-            const newGasto = { id: "demo-" + Date.now(), ...payload };
-            allGastos.push(newGasto);
-            localStorage.setItem("demo_gastos", JSON.stringify(allGastos));
-            showToast("Gasto salvo no Modo Demonstração!", "success");
+          let error;
+
+          if (editingId) {
+            ({ error } = await supabaseClient
+              .from(TABLE_NAME)
+              .update(payload)
+              .eq("id", editingId));
           } else {
-            if (!supabaseClient && !initSupabase()) {
-              showToast(
-                "Configure a URL e Chave do Supabase antes de cadastrar.",
-                "error",
-              );
-              openConfigModal();
-              return;
-            }
-
-            const { error } = await supabaseClient
-              .from("gastos")
-              .insert([payload]);
-
-            if (error) {
-              let errorMsg = error.message;
-              if (error.code === "42501") {
-                errorMsg =
-                  "Sem permissão RLS para inserir. Execute o SQL no Supabase.";
-              }
-              showToast(`Erro ao cadastrar: ${errorMsg}`, "error");
-              return;
-            }
-
-            showToast("Gasto cadastrado com sucesso!", "success");
+            ({ error } = await supabaseClient.from(TABLE_NAME).insert(payload));
           }
 
-          // Limpar formulário mantendo data/hora atualizada
-          document.getElementById("input-nome").value = "";
-          document.getElementById("input-valor").value = "";
-          document.getElementById("input-descricao").value = "";
-          setCurrentDateTimeInput();
+          if (error) throw error;
 
-          // Recarregar dados
-          await fetchGastos();
-        } catch (err) {
-          showToast(`Erro inesperado: ${err.message}`, "error");
+          closeModal();
+          showToast(
+            editingId
+              ? "Gasto atualizado com sucesso."
+              : "Gasto adicionado com sucesso.",
+          );
+          await loadExpenses();
+        } catch (error) {
+          els.formError.textContent = `Não foi possível salvar no Supabase: ${error?.message || error}`;
+          els.formError.classList.remove("hidden");
+          showToast("Falha ao salvar o gasto.", "error");
         } finally {
-          btnSubmit.disabled = false;
-          btnSubmit.innerHTML =
-            '<i class="fa-solid fa-plus"></i> Cadastrar Gasto';
+          $("saveBtn").disabled = false;
+          $("saveSpinner").classList.add("hidden");
         }
       }
 
-      function promptDeleteGasto(id) {
-        pendingDeleteId = id;
-        document.getElementById("delete-modal").classList.remove("hidden");
+      function openDelete(item) {
+        deletingId = item.id;
+        $("deleteText").textContent =
+          `O gasto "${item.nome}" (${formatBRL(item.valor)}) será removido do Supabase. Essa ação não pode ser desfeita.`;
+        els.deleteModal.classList.remove("hidden");
+        els.deleteModal.classList.add("flex");
       }
 
-      function closeDeleteModal() {
-        pendingDeleteId = null;
-        document.getElementById("delete-modal").classList.add("hidden");
+      function closeDelete() {
+        if ($("deleteConfirmBtn").disabled) return;
+        els.deleteModal.classList.add("hidden");
+        els.deleteModal.classList.remove("flex");
+        deletingId = null;
       }
 
-      async function executeDeleteGasto() {
-        if (!pendingDeleteId) return;
-        const id = pendingDeleteId;
-        closeDeleteModal();
+      async function deleteExpense() {
+        if (!deletingId || !supabaseClient) return;
+
+        $("deleteConfirmBtn").disabled = true;
+        $("deleteSpinner").classList.remove("hidden");
 
         try {
-          if (isDemoMode) {
-            allGastos = allGastos.filter((g) => g.id !== id);
-            localStorage.setItem("demo_gastos", JSON.stringify(allGastos));
-            showToast("Gasto excluído no Modo Demo!", "success");
-            applyFiltersAndSort();
-          } else {
-            const { error } = await supabaseClient
-              .from("gastos")
-              .delete()
-              .eq("id", id);
+          const { error } = await supabaseClient
+            .from(TABLE_NAME)
+            .delete()
+            .eq("id", deletingId);
 
-            if (error) {
-              showToast(`Erro ao excluir: ${error.message}`, "error");
-              return;
-            }
+          if (error) throw error;
 
-            showToast("Gasto excluído com sucesso!", "success");
-            fetchGastos();
-          }
-        } catch (err) {
-          showToast(`Erro ao excluir: ${err.message}`, "error");
-        }
-      }
-
-      function openConfigModal() {
-        const url = localStorage.getItem("supabase_url") || "";
-        const key = localStorage.getItem("supabase_key") || "";
-
-        document.getElementById("supabase-url-input").value = url;
-        document.getElementById("supabase-key-input").value = key;
-        document.getElementById("config-modal").classList.remove("hidden");
-      }
-
-      function closeConfigModal() {
-        document.getElementById("config-modal").classList.add("hidden");
-      }
-
-      function saveSupabaseConfig() {
-        const rawUrl = document.getElementById("supabase-url-input").value;
-        const rawKey = document.getElementById("supabase-key-input").value;
-
-        if (!rawUrl.trim() || !rawKey.trim()) {
-          showToast("Preencha tanto a URL quanto a Chave Anon.", "error");
-          return;
-        }
-
-        const cleanUrl = sanitizeSupabaseUrl(rawUrl);
-
-        localStorage.setItem("supabase_url", cleanUrl);
-        localStorage.setItem("supabase_key", rawKey.trim());
-
-        isDemoMode = false;
-        document.getElementById("btn-demo").classList.remove("active");
-
-        showToast("Configurações salvas! Conectando ao Supabase...", "success");
-        closeConfigModal();
-
-        initSupabase();
-        fetchGastos();
-      }
-
-      function toggleDemoMode(forceEnable = false) {
-        if (forceEnable) {
-          isDemoMode = true;
-        } else {
-          isDemoMode = !isDemoMode;
-        }
-
-        const btnDemo = document.getElementById("btn-demo");
-        if (isDemoMode) {
-          btnDemo.classList.add("active");
-          showToast("Modo Demonstração ativado.", "info");
-        } else {
-          btnDemo.classList.remove("active");
-          showToast("Modo Demonstração desativado.", "info");
-        }
-
-        fetchGastos();
-      }
-
-      function copySqlScript() {
-        const text = document.getElementById("sql-script-text").innerText;
-
-        const textarea = document.createElement("textarea");
-        textarea.value = text;
-        document.body.appendChild(textarea);
-        textarea.select();
-
-        try {
-          document.execCommand("copy");
-          showToast("Script SQL copiado com sucesso!", "success");
-        } catch (err) {
-          showToast("Erro ao copiar automaticamente.", "error");
+          closeDelete();
+          showToast("Gasto excluído com sucesso.");
+          await loadExpenses();
+        } catch (error) {
+          showToast(`Falha ao excluir: ${error?.message || error}`, "error");
         } finally {
-          document.body.removeChild(textarea);
+          $("deleteConfirmBtn").disabled = false;
+          $("deleteSpinner").classList.add("hidden");
         }
       }
 
-      function setCurrentDateTimeInput() {
-        const now = new Date();
-        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-        document.getElementById("input-data").value = now
-          .toISOString()
-          .slice(0, 16);
+      function activatePeriod(period) {
+        selectedPeriod = period;
+
+        document.querySelectorAll(".period-btn").forEach((btn) => {
+          const active = btn.dataset.period === period;
+          btn.className = active
+            ? "period-btn rounded-lg bg-slate-950 px-3.5 py-2 text-xs font-semibold text-white"
+            : "period-btn rounded-lg px-3.5 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100";
+        });
+
+        els.customRange.classList.toggle("hidden", period !== "custom");
+        render();
       }
 
-      window.onload = function () {
-        setCurrentDateTimeInput();
+      // Eventos
+      $("newExpenseBtn").addEventListener("click", () => openModal());
+      $("emptyNewBtn").addEventListener("click", () => openModal());
+      $("closeModalBtn").addEventListener("click", closeModal);
+      $("cancelBtn").addEventListener("click", closeModal);
+      $("expenseForm").addEventListener("submit", saveExpense);
 
-        const hasUrl = localStorage.getItem("supabase_url");
-        const hasKey = localStorage.getItem("supabase_key");
+      $("retryBtn").addEventListener("click", loadExpenses);
+      $("refreshBtn").addEventListener("click", loadExpenses);
 
-        if (hasUrl && hasKey) {
-          if (initSupabase()) {
-            fetchGastos();
-          }
-        } else {
-          // Se ainda não foi configurado, ativa o modo demo com dados de exemplo
-          toggleDemoMode(true);
+      $("deleteCancelBtn").addEventListener("click", closeDelete);
+      $("deleteConfirmBtn").addEventListener("click", deleteExpense);
+
+      document.querySelectorAll(".period-btn").forEach((btn) => {
+        btn.addEventListener("click", () => activatePeriod(btn.dataset.period));
+      });
+
+      $("customStart").addEventListener("change", () => {
+        if (selectedPeriod === "custom") render();
+      });
+      $("customEnd").addEventListener("change", () => {
+        if (selectedPeriod === "custom") render();
+      });
+
+      $("searchInput").addEventListener("input", (event) => {
+        searchTerm = event.target.value;
+        render();
+      });
+
+      els.expenseBody.addEventListener("click", (event) => {
+        const editButton = event.target.closest("[data-edit]");
+        const deleteButton = event.target.closest("[data-delete]");
+
+        if (editButton) {
+          const item = expenses.find(
+            (x) => String(x.id) === String(editButton.dataset.edit),
+          );
+          if (item) openModal(item);
         }
-      };
+
+        if (deleteButton) {
+          const item = expenses.find(
+            (x) => String(x.id) === String(deleteButton.dataset.delete),
+          );
+          if (item) openDelete(item);
+        }
+      });
+
+      els.modal.addEventListener("click", (event) => {
+        if (event.target === els.modal) closeModal();
+      });
+
+      els.deleteModal.addEventListener("click", (event) => {
+        if (event.target === els.deleteModal) closeDelete();
+      });
+
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") {
+          if (!els.modal.classList.contains("hidden")) closeModal();
+          if (!els.deleteModal.classList.contains("hidden")) closeDelete();
+        }
+      });
+
+      // Inicialização
+      if (isConfigured) {
+        supabaseClient = window.supabase.createClient(
+          SUPABASE_URL,
+          SUPABASE_ANON_KEY,
+        );
+        loadExpenses();
+      } else {
+        setConnection(
+          false,
+          "As credenciais ainda são placeholders. Edite somente as duas constantes no topo do <script>.",
+        );
+        showError(
+          "A aplicação não consulta nem exibe dados locais. Configure o Supabase para iniciar.",
+        );
+      }
     </script>
   </body>
 </html>
